@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "Browser Extension",
+    "extends": "./base.json",
+    "compilerOptions": {
+        "jsx": "react-jsx",
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "target": "ES2020",
+        "lib": [
+            "es2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "types": ["chrome", "node", "react", "react-dom"],
+        "esModuleInterop": true,
+        "skipLibCheck": true
+    }
+} 
