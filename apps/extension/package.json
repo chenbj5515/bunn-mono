@@ -20,6 +20,8 @@
     "i18next": "^24.2.2",
     "i18next-browser-languagedetector": "^8.0.4",
     "lucide-react": "^0.483.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.33.0",
+    "openai": "^4.89.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^15.4.1",

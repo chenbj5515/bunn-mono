@@ -53,7 +53,8 @@ const commonPlugins = [
     entries: [
       { find: '@ui', replacement: path.resolve(__dirname, '../../packages/ui/src') },
       { find: '@server', replacement: path.resolve(__dirname, '../../packages/server') },
-      { find: 'ui', replacement: path.resolve(__dirname, '../../packages/ui/src') }
+      { find: 'ui', replacement: path.resolve(__dirname, '../../packages/ui/src') },
+      { find: '@db', replacement: path.resolve(__dirname, '../../packages/server/db') },
     ]
   }),
   nodeResolve({

@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
   // 使用client调用新的/users/session接口
   useEffect(() => {
-    client.api.users.session.$get()
+    client.api.user.session.$get()
       .then(async (response) => {
         // 从Hono客户端响应中获取JSON数据
         const responseData = await response.json();

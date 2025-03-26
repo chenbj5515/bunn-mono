@@ -9,7 +9,7 @@ import {
 } from "ui/components/dropdown-menu";
 import { User } from "@/popup/app";
 import { ChevronRight } from "lucide-react";
-import api from "@/utils/api";
+// import api from "@/utils/api";
 import i18n from '@/utils/i18n';
 
 interface UserMenuProps {
@@ -25,10 +25,10 @@ export function UserMenu({ user }: UserMenuProps) {
   };
 
   const handleLogout = () => {
-    api.post("/api/auth/sign-out", {})
-      .then(() => {
-        window.location.reload()
-      })
+    // api.post("/api/auth/sign-out", {})
+    //   .then(() => {
+    //     window.location.reload()
+    //   })
   };
 
   const handleManageSubscription = () => {
@@ -36,15 +36,15 @@ export function UserMenu({ user }: UserMenuProps) {
       window.open(`${process.env.API_BASE_URL}/pricing`, "_blank");
       return;
     }
-    api.post("/api/stripe/portal", {
-      locale: i18n.language
-    })
-      .then((data) => {
-        if (data.url) {
-          console.log(data.url)
-          window.open(data.url, "_blank");
-        }
-      });
+    // api.post("/api/stripe/portal", {
+    //   locale: i18n.language
+    // })
+    //   .then((data) => {
+    //     if (data.url) {
+    //       console.log(data.url)
+    //       window.open(data.url, "_blank");
+    //     }
+    //   });
   };
 
   return (

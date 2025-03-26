@@ -29,6 +29,9 @@
       ],
       "@server/*": [
         "../../packages/server/*"
+      ],
+      "@db/*": [
+        "../../packages/server/db/*"
       ]
     }
   },

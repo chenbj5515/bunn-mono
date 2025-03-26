@@ -21,6 +21,10 @@
     "48": "assets/brand.png",
     "128": "assets/brand.png"
   },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
