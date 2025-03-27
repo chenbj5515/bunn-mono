@@ -1,7 +1,6 @@
-import { askAI, askAIStream } from "@/common/api";
+import { generateText, generateTextStream } from "@/common/api";
 import { showNotification } from "@/common/notify";
 import { calculateWidthFromCharCount } from "./popup-helpers";
-import { API_BASE_URL } from "@/utils/api";
 import { isJapaneseText, addRubyForJapanese, generateUniqueId } from '@/common/utils';
 import { isEntireParagraphSelected } from './dom-helpers';
 
@@ -37,9 +36,9 @@ export async function handlePlainTextTranslation(
     tempContainer.replaceWith(translatedElement);
 
     // 使用流式API获取翻译
-    await askAIStream(
+    await generateTextStream(
         `请将以下文本翻译成中文，只需要返回翻译结果：\n\n${originalText}`,
-        'gpt-4o',
+        'gpt-4o-mini',
         (chunk) => {
             // 确保我们使用的是当前存在于DOM中的元素
             const currentElement = document.getElementById(uniqueId);
@@ -63,7 +62,7 @@ export async function handlePlainTextTranslation(
                 
                 // 如果是token限制，可以添加特别的提示
                 if (error.errorCode === 3001) {
-                    showNotification(`今日使用的token已达上限，<a href="${API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
+                    showNotification(`今日使用的token已达上限，<a href="${process.env.API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
                 }
             } else {
                 // 一般错误处理
@@ -112,7 +111,7 @@ export async function handleExplanationStream(
     let explanation = '';
     let chunkCount = 0;
 
-    await askAIStream(
+    await generateTextStream(
         `请严格按照以下格式回答，格式必须一致，不要添加任何多余内容：
 
         1. 「${fullParagraphText}」这个句子里「${selectedText}」是什么意思？用中文一句话简要说明。如果是一个术语的话，那么稍微补充下相关知识，要求简单易懂不要太长。
@@ -199,7 +198,7 @@ export function shouldTranslateAsFullParagraph(selectedText: string, paragraphNo
  */
 export async function correctSelectedText(selectedText: string, fullParagraphText: string): Promise<string> {
     try {
-        const correctedText = await askAI(`在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。`);
+        const correctedText = await generateText(`在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。`);
 
         // 如果AI返回了有效的修正文本，则使用修正后的文本
         if (correctedText && correctedText.trim()) {
@@ -219,7 +218,7 @@ export async function correctSelectedText(selectedText: string, fullParagraphTex
             
             // 如果是token限制，给出特定提示
             if (error.errorCode === 3001) {
-                showNotification(`今日使用的token已达上限，<a href="${API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
+                showNotification(`今日使用的token已达上限，<a href="${process.env.API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
             }
             throw error; // 重新抛出错误，让调用方决定如何处理
         }

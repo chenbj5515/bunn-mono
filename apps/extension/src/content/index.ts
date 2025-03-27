@@ -1,6 +1,5 @@
 import { initializeSubtitleFeatures } from "./subtitle";
-// import { initializeTranslation } from "./translation";
+import { initializeTranslation } from "./translation";
 
-// initializeTranslation();
-
+initializeTranslation();
 initializeSubtitleFeatures();

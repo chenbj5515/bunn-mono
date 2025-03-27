@@ -8,13 +8,14 @@ export const getApiKey = async (): Promise<string | null> => {
 };
 
 // 非流式请求AI的方法
-export const askAI = async (
+export const generateText = async (
   prompt: string,
   model: string = 'gpt-4o'
 ): Promise<string> => {
   try {
     // 尝试获取API Key
-    const apiKey = await getApiKey();
+    // const apiKey = await getApiKey();
+    const apiKey = false;
     
     if (apiKey) {
       // 有API Key，直接使用OpenAI SDK
@@ -33,7 +34,7 @@ export const askAI = async (
 
       // 没有API Key，通过background.js调用
       const response = await chrome.runtime.sendMessage({
-        type: 'CALL_AI_API',
+        type: 'GENERATE_TEXT',
         payload: { prompt, model }
       });
 
@@ -47,7 +48,7 @@ export const askAI = async (
         }
       }
 
-      return response.result.data;
+      return response.text;
     }
   } catch (error) {
     // 原样抛出APIError，保留错误类型
@@ -61,7 +62,7 @@ export const askAI = async (
 };
 
 // 流式请求AI的方法
-export const askAIStream = async (
+export const generateTextStream = async (
   prompt: string,
   model: string = 'gpt-4o',
   onChunk: (chunk: string) => void = () => { },

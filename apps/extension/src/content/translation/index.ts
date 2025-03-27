@@ -1,4 +1,4 @@
-import { askAI } from '@/common/api';
+import { generateText } from '@/common/api';
 import { initializeStyles } from "./styles";
 import {
     createTranslationDiv,
@@ -213,7 +213,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
         originalDiv.appendChild(playButton);
 
         // 6. 发起翻译请求并处理结果
-        const translationPromise = askAI(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
+        const translationPromise = generateText(`「${fullParagraphText}」这个句子中的「${selectedText}」翻译成中文。要求你只输出「${selectedText}」对应的中文翻译结果就好，不要输出任何其他内容。`);
         const translation = await translationPromise;
         handleTranslationUpdate(translationDiv, originalText, selectedText, translation);
 
@@ -226,7 +226,7 @@ async function translatePartialText(selectedText: string, range: Range, fullPara
             console.warn('无法为选中文本添加下划线，可能是文本在DOM中未找到');
         }
     } catch (error: any) {
-        console.error('翻译过程中出错:', error instanceof Error ? error.message : String(error));
+        console.error('翻译过程中出错1:', error instanceof Error ? error.message : error);
         // alert('翻译失败，请查看控制台获取详细错误信息');
     }
 }

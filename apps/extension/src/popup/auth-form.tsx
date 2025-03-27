@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "ui/components/button"
 import { Icons } from "@/components/icons"
-import api from "@/utils/api"
+// import api from "@/utils/api"
 // import { useTranslation } from "react-i18next"
 // import "../i18n" // 导入i18n配置
 
@@ -17,11 +17,11 @@ export default function AuthForm() {
       setIsGithubLoading(true)
 
       // 请求 GitHub 登录链接
-      const data = await api.post("/api/auth/sign-in/social", {
-        provider: "github",
-        callbackURL: "/",
-      })
-      window.open(data.url, "_blank")
+      // const data = await api.post("/api/auth/sign-in/social", {
+      //   provider: "github",
+      //   callbackURL: "/",
+      // })
+      // window.open(data.url, "_blank")
     } catch (error) {
       console.error("GitHub 登录错误：", error)
     } finally {
@@ -34,11 +34,11 @@ export default function AuthForm() {
       setIsGoogleLoading(true)
 
       // 请求 Google 登录链接
-      const data = await api.post("/api/auth/sign-in/social", {
-        provider: "google",
-        callbackURL: "/",
-      })
-      window.open(data.url, "_blank")
+      // const data = await api.post("/api/auth/sign-in/social", {
+      //   provider: "google",
+      //   callbackURL: "/",
+      // })
+      // window.open(data.url, "_blank")
     } catch (error) {
       console.error("Google 登录错误：", error)
     } finally {

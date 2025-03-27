@@ -7,8 +7,6 @@ import {
 
 export interface TTSOptions {
     voiceName: string;
-    subscriptionKey?: string;
-    region?: string;
 }
 
 /**
@@ -18,8 +16,9 @@ export interface TTSOptions {
  * @param onFinish 语音播放完成后的回调
  */
 export const speakText = (text: string, options: TTSOptions, onFinish?: () => void) => {
-    const subscriptionKey = options.subscriptionKey || process.env.NEXT_PUBLIC_SUBSCRIPTION_KEY;
-    const region = options.region || process.env.NEXT_PUBLIC_REGION;
+    console.log(process.env.NEXT_PUBLIC_SUBSCRIPTION_KEY);
+    const subscriptionKey = process.env.NEXT_PUBLIC_SUBSCRIPTION_KEY;
+    const region = process.env.NEXT_PUBLIC_REGION;
     
     if (!subscriptionKey || !region) {
         console.error("缺少语音服务的订阅密钥或区域配置");

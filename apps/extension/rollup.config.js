@@ -29,7 +29,7 @@ const apiBaseUrl = production
 // 从.env文件加载环境变量
 function loadEnv() {
   try {
-    const envFile = fs.readFileSync('.env', 'utf-8');
+    const envFile = fs.readFileSync(path.resolve(__dirname, '../../.env'), 'utf-8');
     const env = {};
     envFile.split('\n').forEach(line => {
       const [key, value] = line.split('=');
