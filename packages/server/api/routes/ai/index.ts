@@ -108,7 +108,7 @@ const app = new Hono()
                 ]
               }
             ],
-            max_tokens: 100
+            max_tokens: 5000
           })
         });
 
@@ -151,10 +151,7 @@ const app = new Hono()
 
         return c.json({
           success: true,
-          subtitles,
-          text: {
-            fullText: subtitles
-          }
+          subtitles
         });
       } catch (err) {
         console.error('调用4o-mini模型失败aa:', err);

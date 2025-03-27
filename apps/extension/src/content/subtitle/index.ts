@@ -43,13 +43,17 @@ export function initializeSubtitleFeatures() {
   window.addEventListener('keydown', handleKeyDown, true);
 }
 
+// 跟踪上一次C键按下的时间
+let lastCKeyPressTime = 0;
+
 /**
  * 处理键盘事件
  */
 async function handleKeyDown(e: KeyboardEvent) {
   console.log('handleKeyDown====================');
-  // 处理复制快捷键 (Ctrl+Shift+C / Cmd+Shift+C)
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+
+  // 处理Ctrl键
+  if ((e.key === 'Control' || e.key === 'Meta')) {
     await handleCopySubtitle(e);
   }
   // 处理YouTube上的左右箭头键
@@ -63,9 +67,15 @@ async function handleKeyDown(e: KeyboardEvent) {
 }
 
 /**
- * 处理复制字幕快捷键 (Ctrl+C / Cmd+C)
+ * 处理复制字幕快捷键 (单独的Ctrl/Cmd键)
  */
 async function handleCopySubtitle(e: KeyboardEvent) {
+  const selection = window.getSelection();
+  const hasSelectedText = selection && selection.toString().trim();
+
+  if (hasSelectedText) return;
+
+  // 如果没有选中文本，则触发字幕复制功能
   e.preventDefault();
 
   if (isNetflix) {

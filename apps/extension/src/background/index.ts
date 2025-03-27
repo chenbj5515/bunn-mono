@@ -1,4 +1,5 @@
 import { client } from "@server/lib/api-client"
+import { handleExtractSubtitles } from "./handle-extract-subtitles";
 const API_BASE_URL = process.env.API_BASE_URL;
 
 // 定义API响应类型
@@ -8,43 +9,8 @@ type ApiResponse = ApiErrorResponse | ApiSuccessResponse;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "EXTRACT_SUBTITLES") {
-        // 发起请求
-        (async () => {
-            try {
-                const uint8Array = new Uint8Array(message.data.imageData);
-                const blob = new Blob([uint8Array], { type: 'image/png' });
-                const formData = new FormData();
-                formData.append('image', blob, 'image.png');
-                // const file = new File([blob], 'subtitle.jpg', { type: 'image/jpeg' });
-                // formData.append('image', file);
-
-                console.log('message.data.imageData:', message.data.imageData);
-                console.log('uint8Array:', uint8Array);
-                console.log('blob:', blob);
-                console.log('formData:', formData);
-
-                // 不使用Hono客户端，改用原生fetch发送FormData
-                const response = await fetch(`${API_BASE_URL}/api/ai/extract-subtitles`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const data = await response.json() as ApiResponse;
-
-                if (data.success) {
-                    console.log("提取到的字幕:", data.subtitles);
-                    sendResponse({ result: data.subtitles });
-                } else {
-                    console.error("接口调用失败:", data.error);
-                    sendResponse({ error: data.error });
-                }
-            } catch (error) {
-                console.error("请求出现异常:", error);
-                sendResponse({ error: error instanceof Error ? error.message : String(error) });
-            }
-        })();
-
-        return true; // 表示会异步发送响应
+        handleExtractSubtitles(message.data.imageData, sender, sendResponse);
+        return true; // 添加返回 true，表示会异步发送响应
     }
     if (message.type === "START_AI_STREAM") {
         // 发起API请求并处理流式响应
