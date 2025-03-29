@@ -5,7 +5,6 @@ import { Button } from "ui/components/button"
 import { Input } from "ui/components/input"
 import { Icons } from "@/components/icons"
 import { useTranslation } from "react-i18next"
-import "../i18n" // 导入i18n配置
 
 export default function ApiKeyForm({
   initialApiKey = "",

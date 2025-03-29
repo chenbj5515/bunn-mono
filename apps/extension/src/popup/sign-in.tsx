@@ -7,7 +7,7 @@ import { Icons } from "@/components/icons"
 // import { useTranslation } from "react-i18next"
 // import "../i18n" // 导入i18n配置
 
-export default function AuthForm() {
+export default function SignIn() {
   const [isGithubLoading, setIsGithubLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   // const { t } = useTranslation();

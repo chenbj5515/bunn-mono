@@ -8,6 +8,7 @@ import Loading from "ui/components/loading"
 // 正确导入client，根据实际路径调整
 import { client } from "@server/lib/api-client"
 import { UserMenu } from "./user-menu"
+import MissingKey from "./missing-key"
 // import { UserMenu } from "@/popup/user-menu"
 // import ApiKeyForm from "./api-key-form"
 // import AuthForm from "./auth-form"
@@ -59,12 +60,12 @@ export default function SettingsPage() {
       .then(async (response) => {
         // 从Hono客户端响应中获取JSON数据
         const responseData = await response.json();
-        
+
         // 类型守卫：检查是否有success和data属性
         if (responseData.success && 'data' in responseData) {
           const data = responseData.data;
           const { session, subscription } = data;
-          
+
           // 合并session和subscription数据到用户对象
           const userData: User = {
             id: session.user.id,
@@ -74,7 +75,7 @@ export default function SettingsPage() {
             subscriptionActive: subscription.active,
             expireAt: subscription.expireAt
           };
-          
+
           console.log(userData, "user data from session API");
           setUser(userData);
         }
@@ -94,6 +95,8 @@ export default function SettingsPage() {
     })
   }, [])
 
+  function handleSignIn() {}
+
   // 点击"订阅引导"时，打开新的 tab 访问订阅引导页（替换下面的 URL）
   // const handleSubscribeGuide = () => {
   //   window.open("https://your-subscription-guide-url.com", "_blank")
@@ -107,9 +110,19 @@ export default function SettingsPage() {
     <div className="mx-auto px-4 py-4 w-[360px] max-w-4xl font-mono container">
       {/* 顶部导航栏：语言选择器在左，用户菜单在右，两者垂直居中 */}
       <div className="flex justify-between items-center mb-4">
-        {user && <UserMenu user={user} />}
-        <LanguageSelector /> 
+        {user ? <UserMenu user={user} /> : (
+          <div
+            onClick={handleSignIn}
+            className="px-4 py-2 border border-gray-300 hover:border-black rounded-[8px] font-medium text-[#1a1a1a] text-[14px] hover:text-[#595a5d] transition"
+          >
+            SIGN IN
+          </div>
+        )}
+        <LanguageSelector />
       </div>
+      {
+        user ? null : <MissingKey />
+      }
     </div>
   )
 }

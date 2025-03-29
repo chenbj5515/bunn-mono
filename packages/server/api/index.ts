@@ -1,10 +1,8 @@
 // import { handleError } from './error'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import usersRoute from './routes/user'
+import usersRoute from './routes/user/index'
 import aiRoute from './routes/ai'
-// import todoRoute from './routes/todo'
-// import helloRoute from './routes/hello'
 const app = new Hono().basePath('/api')
 
 // 添加CORS中间件，允许localhost:3000跨域访问
@@ -25,19 +23,3 @@ const routes = app
 export default app
 
 export type AppType = typeof routes
-
-// 为客户端提供更明确的类型定义
-// export interface ApiClientType {
-//   api: {
-//     ai: {
-//       'extract-subtitles': {
-//         $post: (options: { form: FormData }) => Promise<Response>
-//       }
-//     },
-//     user: {
-//       session: {
-//         $get: () => Promise<Response>
-//       }
-//     }
-//   }
-// }

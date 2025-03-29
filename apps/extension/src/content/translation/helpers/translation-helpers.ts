@@ -198,7 +198,10 @@ export function shouldTranslateAsFullParagraph(selectedText: string, paragraphNo
  */
 export async function correctSelectedText(selectedText: string, fullParagraphText: string): Promise<string> {
     try {
-        const correctedText = await generateText(`在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。`);
+        const correctedText = await generateText(`
+            在「${fullParagraphText}」这个句子中用户选中了「${selectedText}」，如果这是一个完整的单词或者短语那么直接返回即可。
+            如果不是一个完整的短语，查看选中部分周围，把选中部分修正为完整的单词或短语并返回给我，注意只要保证完整即可不要找的太长，另外只返回这个完整的单词或短语，不要返回其他任何其他内容。
+        `);
 
         // 如果AI返回了有效的修正文本，则使用修正后的文本
         if (correctedText && correctedText.trim()) {

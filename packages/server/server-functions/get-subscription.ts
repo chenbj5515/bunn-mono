@@ -22,7 +22,6 @@ export interface UserSessionData {
 export async function getUserSubscription(): Promise<UserSessionData> {
   // 获取用户session
   const session = await getSession()
-  console.log('getUserSubscription session===', session)
 
   if (!session?.user?.id) {
     throw new Error('用户未登录')

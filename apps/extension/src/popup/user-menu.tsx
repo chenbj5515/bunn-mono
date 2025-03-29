@@ -9,8 +9,7 @@ import {
 } from "ui/components/dropdown-menu";
 import { User } from "@/popup/app";
 import { ChevronRight } from "lucide-react";
-// import api from "@/utils/api";
-import i18n from '@/utils/i18n';
+import { client } from '@server/lib/api-client';
 
 interface UserMenuProps {
   user: User;
@@ -25,10 +24,7 @@ export function UserMenu({ user }: UserMenuProps) {
   };
 
   const handleLogout = () => {
-    // api.post("/api/auth/sign-out", {})
-    //   .then(() => {
-    //     window.location.reload()
-    //   })
+    client.api.user['sign-out'].$post();
   };
 
   const handleManageSubscription = () => {
@@ -49,13 +45,13 @@ export function UserMenu({ user }: UserMenuProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none">
-        <Avatar className="w-10 h-10 cursor-pointer">
-          <AvatarImage src={`${process.env.API_BASE_URL}${user.image}`} />
-          <AvatarFallback>Name</AvatarFallback>
-        </Avatar>
-        <span className="text-sm">{user.name}</span>
-      </DropdownMenuTrigger>
+        < DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none" >
+          <Avatar className="w-10 h-10 cursor-pointer">
+            <AvatarImage src={`${process.env.API_BASE_URL}${user.image}`} />
+            <AvatarFallback>Name</AvatarFallback>
+          </Avatar>
+          <span className="text-sm">{user.name}</span>
+        </DropdownMenuTrigger >
       <DropdownMenuContent className="w-[260px]">
         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="py-2 cursor-default">
           <span className="text-sm">{user.email}</span>
@@ -92,6 +88,6 @@ export function UserMenu({ user }: UserMenuProps) {
           <span className="text-sm">退出登录</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
+    </DropdownMenu >
   );
 } 
