@@ -2,30 +2,22 @@
 import * as React from "react"
 import { Globe } from "lucide-react"
 import Cookies from 'js-cookie';
-import { changeLanguage } from "@/utils/i18n";
+import { changeLanguage, getCurrentLanguage } from "@/utils/i18n";
 
 export function LanguageSelector() {
     const [isOpen, setIsOpen] = React.useState(false)
-    const [locale, setLocale] = React.useState('en'); // 添加locale状态，默认为'en'
+    const [locale, setLocale] = React.useState(getCurrentLanguage() || 'zh'); // 使用getCurrentLanguage获取当前语言
     const containerRef = React.useRef<HTMLDivElement>(null)
 
     const handleLanguageChange = (value: string) => {
-        // Cookies.set('NEXT_LOCALE', value, {
-        //     path: '/',
-        //     expires: 365, // 一年有效期
-        //     sameSite: 'lax'
-        // });
         setLocale(value); // 更新locale状态
-        changeLanguage(value);
+        changeLanguage(value); // 使用i18n中定义的changeLanguage函数
         setIsOpen(false);
     }
 
-    // 从cookie中读取语言设置
+    // 从i18n同步语言设置
     React.useEffect(() => {
-        const savedLocale = Cookies.get('NEXT_LOCALE');
-        if (savedLocale) {
-            setLocale(savedLocale);
-        }
+        setLocale(getCurrentLanguage());
     }, []);
 
     React.useEffect(() => {

@@ -10,6 +10,7 @@ import {
 import { User } from "@/popup/app";
 import { ChevronRight } from "lucide-react";
 import { client } from '@server/lib/api-client';
+import api from '@/utils/api';
 
 interface UserMenuProps {
   user: User;
@@ -24,7 +25,8 @@ export function UserMenu({ user }: UserMenuProps) {
   };
 
   const handleLogout = () => {
-    client.api.user['sign-out'].$post();
+    api.post("/api/auth/sign-out")
+    window.location.reload()
   };
 
   const handleManageSubscription = () => {

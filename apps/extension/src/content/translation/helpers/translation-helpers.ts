@@ -65,6 +65,7 @@ export async function handlePlainTextTranslation(
                     showNotification(`今日使用的token已达上限，<a href="${process.env.API_BASE_URL}/pricing" target="_blank" style="text-decoration:underline;color:inherit;">立即升级</a>`, 'warning');
                 }
             } else {
+                console.error('翻译失败:', error);
                 // 一般错误处理
                 showNotification('翻译失败，请稍后重试', 'error');
             }

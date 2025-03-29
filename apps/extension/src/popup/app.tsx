@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-// import { useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 // import { Key, UserCircle } from "lucide-react"
 // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "ui/components/card"
 // // import { Button } from "ui/components/button"
@@ -15,6 +15,8 @@ import MissingKey from "./missing-key"
 // import UsageGuide from "./usage-guide"
 // import SubscriptionPrompt from "./subscription-prompt"
 // import "../i18n" // 导入i18n配置
+// 导入i18n配置
+import "@/utils/i18n"
 
 // 根据新接口返回格式定义接口
 export interface SessionResponse {
@@ -52,7 +54,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [hasStoredApiKey, setHasStoredApiKey] = useState(false)
   const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key
-  // const { t } = useTranslation();
+  const { t } = useTranslation();
 
   // 使用client调用新的/users/session接口
   useEffect(() => {
@@ -111,12 +113,12 @@ export default function SettingsPage() {
       {/* 顶部导航栏：语言选择器在左，用户菜单在右，两者垂直居中 */}
       <div className="flex justify-between items-center mb-4">
         {user ? <UserMenu user={user} /> : (
-          <div
+          <button
             onClick={handleSignIn}
-            className="px-4 py-2 border border-gray-300 hover:border-black rounded-[8px] font-medium text-[#1a1a1a] text-[14px] hover:text-[#595a5d] transition"
+            className="px-4 py-2 border border-gray-300 hover:border-black rounded-[8px] font-medium text-[#1a1a1a] text-[14px] hover:text-[#595a5d] transition cursor-pointer"
           >
-            SIGN IN
-          </div>
+            {t('common.login')}
+          </button>
         )}
         <LanguageSelector />
       </div>

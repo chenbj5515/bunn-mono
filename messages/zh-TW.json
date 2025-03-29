@@ -451,5 +451,62 @@
     },
     "dictation": {
         "writeOriginalText": "請默寫出原文"
+    },
+    "usageGuide": {
+        "title": "使用指南",
+        "forBestResults": "複製後，把內容貼到",
+        "BunnIsBest": "Bunn會提供翻譯、音標、影子跟讀和默寫等功能，並且Bunn還會記錄這次複製發生的場景，你可以隨時一鍵進行場景重現。",
+        "shortcuts": {
+            "cmdShiftC": {
+                "title": "cmd+shift+c", 
+                "netflix": "對於Netflix：開啟字幕並按cmd+shift+c複製當前字幕。",
+                "youtube": "對於YouTube：找到有內建字幕的影片，按cmd+shift+c複製當前畫面的字幕。"
+            },
+            "cmdShiftR": {
+                "title": "cmd+shift+r",
+                "description": "重播與上次複製的字幕相對應的影片片段。"
+            },
+            "t": {
+                "title": "t",
+                "description": "選擇任何文字並按t鍵翻譯所選文字。"
+            },
+            "cc": {
+                "title": "c+c",
+                "description": "選擇任何文字並連按兩次c，以JSON格式將文字和URL（包含捲動位置）複製到剪貼簿。"
+            }
+        }
+    },
+    "loginPage": {
+        "missingApiKey": "缺少 OpenAI API 金鑰",
+        "chooseOption": "請登入或者輸入API金鑰來使用外掛",
+        "signIn": {
+            "title": "登入",
+            "description": "使用 GitHub 或 Google 登入，無需 API 金鑰即可使用進階功能"
+        },
+        "or": "或是",
+        "apiKey": {
+            "title": "使用 API 金鑰",
+            "description": "提供您自己的 OpenAI API 金鑰，無需帳號即可使用擴充功能",
+            "placeholder": "輸入您的 OpenAI API 金鑰",
+            "visitPage": "前往",
+            "officialPage": "OpenAI 官方設定頁面",
+            "toObtain": "取得您的金鑰。",
+            "saveSettings": "儲存設定",
+            "alreadySetup": "您已經設定好 OpenAI API 金鑰"
+        },
+        "signOut": "登出",
+        "loading": "載入中..."
+    },
+    "subscription": {
+        "title": "升級至進階版",
+        "description": "無需 API 金鑰即可使用所有功能。此外，還可以無限制地使用Bunn。",
+        "subscribeNow": "立即訂閱",
+        "learnMore": "了解更多關於",
+        "website": "Bunn"
+    },
+    "auth": {
+        "signInWithGithub": "使用 GitHub 登入",
+        "signInWithGoogle": "使用 Google 登入",
+        "or": "或是"
     }
 }

@@ -5,6 +5,7 @@ import { Button } from "ui/components/button"
 import { Input } from "ui/components/input"
 import { Icons } from "@/components/icons"
 import { useTranslation } from "react-i18next"
+import "@/utils/i18n"
 
 export default function ApiKeyForm({
   initialApiKey = "",
@@ -36,6 +37,7 @@ export default function ApiKeyForm({
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
           <Input
+            className="text-[14px]"
             type="password"
             placeholder={t('loginPage.apiKey.placeholder')}
             value={apiKey}

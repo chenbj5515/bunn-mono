@@ -4,6 +4,7 @@ import {  Card, CardContent, CardDescription, CardHeader, CardTitle  } from "ui/
 import { useTranslation } from "react-i18next";
 import { Key, UserCircle } from "lucide-react"
 import SignIn from "./sign-in";
+import "@/utils/i18n"; // 确保导入i18n配置
 
 export default function MissingKey() {
     const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key

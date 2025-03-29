@@ -7,7 +7,7 @@ const app = new Hono().basePath('/api')
 
 // 添加CORS中间件，允许localhost:3000跨域访问
 app.use('/*', cors({
-  origin: '*',
+  origin: 'chrome-extension://apljdgcegjfmknaekcmmknknikafjenj',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true
