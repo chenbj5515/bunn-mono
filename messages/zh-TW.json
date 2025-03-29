@@ -127,7 +127,7 @@
                 ]
             },
             "netflix": "當然，如果您更喜歡動漫，可以在 Netflix 上找到帶有日語字幕的日本動漫。Netflix 的字幕功能提供自然的句子斷句，完美符合 Bunn 的工作流程。",
-            "websiteCopy": "如果是從網站上複製文字，那麼在選中文字後連續兩次按下c鍵即可把文字所在的網址以及捲動位置都記錄到剪貼簿，貼上到Bunn應用程式之後會像下面這樣："
+            "websiteCopy": "如果是從網站上複製文字，那麼在選中文字後連續兩次按下c鍵即可把文字所在的網址以及捲動位置都記錄到剪貼簿，貼上到Bunn之後會像下面這樣："
         },
         "remember": {
             "title": "如果我記不住學過的內容怎麼辦？",
@@ -457,22 +457,21 @@
         "forBestResults": "複製後，把內容貼到",
         "BunnIsBest": "Bunn會提供翻譯、音標、影子跟讀和默寫等功能，並且Bunn還會記錄這次複製發生的場景，你可以隨時一鍵進行場景重現。",
         "shortcuts": {
-            "cmdShiftC": {
-                "title": "cmd+shift+c", 
-                "netflix": "對於Netflix：開啟字幕並按cmd+shift+c複製當前字幕。",
-                "youtube": "對於YouTube：找到有內建字幕的影片，按cmd+shift+c複製當前畫面的字幕。"
-            },
-            "cmdShiftR": {
-                "title": "cmd+shift+r",
-                "description": "重播與上次複製的字幕相對應的影片片段。"
+            "option": {
+                "title": "option/Alt",
+                "forText": "對於文本",
+                "textPrefix": "選中後按下即可複製到剪貼簿，貼到",
+                "textSuffix": "應用後可以隨時複習並且一鍵回到上下文。",
+                "youtubeTitle": "對於",
+                "youtubeContent": "不要打開字幕而需要找存在內置字幕的視頻，按下後會把當前幀的字幕複製到剪貼簿。",
+                "netflixTitle": "對於",
+                "netflixContent": "你只需要打開字幕功能後按下，按下後會把當前畫面中的文字複製到剪貼簿。",
+                "youtube": "對於YouTube視頻：不要打開字幕而需要找存在內置字幕的視頻，按下後會把當前幀的字幕複製到剪貼簿。",
+                "netflix": "對於Netflix視頻：你只需要打開字幕功能後按下，按下後會把當前畫面中的文字複製到剪貼簿。"
             },
             "t": {
-                "title": "t",
-                "description": "選擇任何文字並按t鍵翻譯所選文字。"
-            },
-            "cc": {
-                "title": "c+c",
-                "description": "選擇任何文字並連按兩次c，以JSON格式將文字和URL（包含捲動位置）複製到剪貼簿。"
+                "title": "T",
+                "description": "選擇文本後按下T會完成翻譯。支持段落翻譯和短語翻譯。"
             }
         }
     },

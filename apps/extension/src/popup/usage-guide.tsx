@@ -1,10 +1,12 @@
 import { BookOpen } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "ui/components/card"
 import { useTranslation } from "react-i18next"
-import "../i18n" // 导入i18n配置
+import "@/utils/i18n"; // 确保导入i18n配置
 
 export default function UsageGuide() {
   const { t } = useTranslation();
+
+  // 分割文本为前缀、Bunn部分和后缀
 
   return (
     <Card>
@@ -18,34 +20,56 @@ export default function UsageGuide() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <h3 className="mb-2 font-semibold text-[18px]">{t('usageGuide.shortcuts.cmdShiftC.title')}</h3>
-          <p className="text-[14px] text-muted-foreground">
-            {t('usageGuide.shortcuts.cmdShiftC.netflix')}
-          </p>
-          <p className="text-[14px] text-muted-foreground">
-            {t('usageGuide.shortcuts.cmdShiftC.youtube')}
-          </p>
+          <h3 className="mb-2 font-semibold text-[18px]">{t('usageGuide.shortcuts.option.title')}</h3>
+
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-1">
+              <strong className="font-[600] text-[14px] text-black">
+                {t('usageGuide.shortcuts.option.forText')}
+              </strong>
+            </div>
+            <div className="text-[14px] text-muted-foreground">
+              {t('usageGuide.shortcuts.option.textPrefix')}
+              <a href="https://bunn.ink/" target="_blank" className="mx-1 hover:text-primary underline underline-offset-4">Bunn</a>
+              {t('usageGuide.shortcuts.option.textSuffix')}
+            </div>
+          </div>
+
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-1">
+              <strong className="font-[600] text-[14px] text-black">
+                {t('usageGuide.shortcuts.option.youtubeTitle')}
+              </strong>
+              <a href="https://www.youtube.com/" target="_blank" className="inline-flex">
+                <img src={`${process.env.API_BASE_URL}/icon/youtube.svg`} alt="YouTube" width={60} />
+              </a>
+            </div>
+            <p className="text-[14px] text-muted-foreground">
+              {t('usageGuide.shortcuts.option.youtubeContent')}
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <strong className="font-[600] text-[14px] text-black">
+                {t('usageGuide.shortcuts.option.netflixTitle')}
+              </strong>
+              <a href="https://www.netflix.com/" target="_blank" className="inline-flex">
+                <img src={`${process.env.API_BASE_URL}/icon/netflix.png`} alt="Netflix" width={50} />
+              </a>
+            </div>
+            <p className="text-[14px] text-muted-foreground">
+              {t('usageGuide.shortcuts.option.netflixContent')}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="mb-2 font-semibold text-[18px]">{t('usageGuide.shortcuts.cmdShiftR.title')}</h3>
-          <p className="text-[14px] text-muted-foreground">{t('usageGuide.shortcuts.cmdShiftR.description')}</p>
-        </div>
+
         <div>
           <h3 className="mb-2 font-semibold text-[18px]">{t('usageGuide.shortcuts.t.title')}</h3>
           <p className="text-[14px] text-muted-foreground">
             {t('usageGuide.shortcuts.t.description')}
           </p>
         </div>
-        <div>
-          <h3 className="mb-2 font-semibold text-[18px]">{t('usageGuide.shortcuts.cc.title')}</h3>
-          <p className="text-[14px] text-muted-foreground">
-            {t('usageGuide.shortcuts.cc.description')}
-          </p>
-        </div>
-        <CardDescription>
-          {t('usageGuide.forBestResults')} <a href="https://bunn.ink/" target="_blank" className="hover:text-primary underline underline-offset-4">Bunn</a>
-          <div className="mt-2">{t('usageGuide.BunnIsBest')}</div>
-        </CardDescription>
       </CardContent>
     </Card>
   )

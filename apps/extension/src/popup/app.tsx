@@ -17,6 +17,7 @@ import MissingKey from "./missing-key"
 // import "../i18n" // 导入i18n配置
 // 导入i18n配置
 import "@/utils/i18n"
+import UsageGuide from "./usage-guide"
 
 // 根据新接口返回格式定义接口
 export interface SessionResponse {
@@ -123,7 +124,7 @@ export default function SettingsPage() {
         <LanguageSelector />
       </div>
       {
-        user ? null : <MissingKey />
+        user ? <UsageGuide/> : <MissingKey />
       }
     </div>
   )
