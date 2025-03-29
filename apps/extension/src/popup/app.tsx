@@ -5,16 +5,11 @@ import { useTranslation } from "react-i18next"
 // // import { Button } from "ui/components/button"
 import { LanguageSelector } from "@/components/language-selector"
 import Loading from "ui/components/loading"
-// 正确导入client，根据实际路径调整
 import { client } from "@server/lib/api-client"
 import { UserMenu } from "./user-menu"
 import MissingKey from "./missing-key"
 // import { UserMenu } from "@/popup/user-menu"
-// import ApiKeyForm from "./api-key-form"
-// import AuthForm from "./auth-form"
-// import UsageGuide from "./usage-guide"
 // import SubscriptionPrompt from "./subscription-prompt"
-// import "../i18n" // 导入i18n配置
 // 导入i18n配置
 import "@/utils/i18n"
 import UsageGuide from "./usage-guide"
@@ -93,7 +88,6 @@ export default function SettingsPage() {
   // 修改检查 chrome storage 的 useEffect
   useEffect(() => {
     chrome.storage.local.get(['openai_api_key'], (result) => {
-      setHasStoredApiKey(!!result.openai_api_key)
       setStoredApiKey(result.openai_api_key || "") // 保存 API key 的值
     })
   }, [])
@@ -124,7 +118,7 @@ export default function SettingsPage() {
         <LanguageSelector />
       </div>
       {
-        user ? <UsageGuide/> : <MissingKey />
+        user || storedApiKey ? <UsageGuide/> : <MissingKey />
       }
     </div>
   )

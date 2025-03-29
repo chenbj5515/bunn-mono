@@ -53,7 +53,7 @@ async function handleKeyDown(e: KeyboardEvent) {
   console.log('handleKeyDown====================');
 
   // 处理Ctrl键
-  if ((e.key === 'Control' || e.key === 'Meta')) {
+  if ((e.key === 'Alt')) {
     await handleCopySubtitle(e);
   }
   // 处理YouTube上的左右箭头键

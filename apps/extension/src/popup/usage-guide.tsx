@@ -41,7 +41,7 @@ export default function UsageGuide() {
                 {t('usageGuide.shortcuts.option.youtubeTitle')}
               </strong>
               <a href="https://www.youtube.com/" target="_blank" className="inline-flex">
-                <img src={`${process.env.API_BASE_URL}/icon/youtube.svg`} alt="YouTube" width={60} />
+                <img src={`${process.env.API_BASE_URL}/icon/youtube.svg`} alt="YouTube" width={70} />
               </a>
             </div>
             <p className="text-[14px] text-muted-foreground">

@@ -135,10 +135,11 @@ async function processSelection(selection: Selection | null) {
     console.log('选中的文本:', selectedText);
     console.log('段落文本:', fullParagraphText);
 
+    const shouldTranslateAsFullParagraphResult = await shouldTranslateAsFullParagraph(selectedText, paragraphNode, fullParagraphText);
     // 使用判定函数决定是整段翻译还是部分文本翻译
-    if (shouldTranslateAsFullParagraph(selectedText, paragraphNode, fullParagraphText)) {
-        console.log('处理整段翻译');
-        await translateFullParagraph(paragraphNode, selectedText ? selectedText : fullParagraphText);
+    if (shouldTranslateAsFullParagraphResult) {
+        console.log('处理整段翻译', paragraphNode);
+        await translateFullParagraph(paragraphNode, fullParagraphText);
     } else {
         console.log('处理部分文本翻译');
         const range = selection?.getRangeAt(0)!;
