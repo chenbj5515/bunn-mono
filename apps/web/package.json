@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "diff-match-patch": "^1.0.5",
     "@ai-sdk/openai": "^1.2.5",
     "@auth/core": "^0.38.0",
     "@auth/drizzle-adapter": "^1.8.0",
@@ -22,11 +21,13 @@
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "diff-match-patch": "^1.0.5",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.40.0",
     "framer-motion": "^12.5.0",
     "hono": "^4.7.2",
     "jotai": "^2.12.2",
+    "lucide-react": "^0.483.0",
     "next-intl": "^4.0.2",
     "pg": "^8.14.0",
     "react": "^19.0.0",
@@ -36,9 +37,9 @@
     "ui": "workspace:*"
   },
   "devDependencies": {
-    "@types/diff-match-patch": "^1.0.36",
     "@eslint/eslintrc": "^3",
     "@types/canvas-confetti": "^1.9.0",
+    "@types/diff-match-patch": "^1.0.36",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/pg": "^8.11.11",

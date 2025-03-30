@@ -58,9 +58,9 @@ function MemoCardContent(props: IProps) {
     return (
         <>
             {displayCards?.map(card => (
-                <div className="group relative mx-auto mb-14 max-w-[760px] text-[18px] sm:text-base memo-card" key={card.id}>
+                <div className="group relative mx-auto mb-14 max-w-[800px] text-[18px] sm:text-base memo-card" key={card.id}>
                     <button 
-                        className="top-0 right-0 z-10 absolute bg-red-500 hover:bg-red-600 opacity-0 group-hover:opacity-100 p-1 rounded-full transition-opacity duration-200"
+                        className="top-0 right-[2%] z-10 absolute opacity-0 group-hover:opacity-100 p-1 rounded-full transition-opacity duration-200"
                         onClick={() => handleDelete(card.id)}
                     >
                         <Trash className="w-5 h-5" />

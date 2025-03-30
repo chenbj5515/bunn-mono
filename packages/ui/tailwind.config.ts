@@ -12,18 +12,6 @@ const config = {
     '../../apps/extension/src/components/**/*.{ts,tsx}',
   ],
   theme: {
-    colors: {
-      bgDark: '#212121',
-      eleDark: '#151515',
-      black: 'rgb(26 26 26)',
-      wrong: '#E50914',
-      correct: 'limegreen',
-      blue: '#1e07f0',
-      white: 'white',
-      hovered: '#f4f4f5',
-      darkButtonBg: '#e6e7e8',
-      darkBorderColor: '#878a8c'
-    },
     extend: {
       transitionProperty: {
         'stroke': 'stroke-dasharray, stroke-dashoffset',
@@ -38,6 +26,9 @@ const config = {
         'full-moon': 'inset 15px -4px 0px 15px #fff000',
         'dark-shadow': '0px 0px 10px 1px #000000ee',
         'little-button': '0.1em 0.1em',
+        'shadow-neumorphic': '4px 4px 8px #bebebe, -4px -4px 8px #ffffff',
+        'shadow-neumorphic-weak': '1px 1px 2px #bebebe, -4px -4px 8px #ffffff',
+        'shadow-neumorphic-button-hover': 'inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff',
         buttonActive:
           "0 12px 25px -4px rgba(0, 0, 0, 0.4), inset 0 -8px 30px 1px rgba(255, 255, 255, 0.9), 0 -10px 15px -1px rgba(255, 255, 255, 0.6), inset 0 8px 25px 0 rgba(0, 0, 0, 0.4), inset 0 0 10px 1px rgba(255, 255, 255, 0.6)",
         darkActive:
@@ -49,6 +40,16 @@ const config = {
         sm: 'calc(var(--radius) - 4px)'
       },
       colors: {
+        bgDark: '#212121',
+        eleDark: '#151515',
+        black: 'rgb(26 26 26)',
+        wrong: '#E50914',
+        correct: 'limegreen',
+        blue: '#1e07f0',
+        white: 'white',
+        hovered: '#f4f4f5',
+        darkButtonBg: '#e6e7e8',
+        darkBorderColor: '#878a8c',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

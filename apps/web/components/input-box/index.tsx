@@ -43,7 +43,7 @@ export function InputBox() {
         try {
             setLocalCardList((prev) => [...prev, {
                 key: Date.now(),
-                original_text: originalText.includes(":") ? originalText.split(":")[1].trim() : originalText.trim(),
+                original_text: originalText.includes(":") ? originalText.split(":")[1]?.trim() || "ß" : originalText.trim(),
                 context_url: urlRef.current
             }])
 
@@ -146,18 +146,6 @@ export function InputBox() {
         if (editableRef.current) {
             editableRef.current.classList.add("text-[#999]");
             editableRef.current.textContent = defaultText;
-            // 初始检查限制
-            // checkLimit("memo_card").then(hasReachedLimit => {
-            //     if (hasReachedLimit) {
-            //         setIsLimited(true);
-            //         if (editableRef.current) {
-            //             editableRef.current.innerHTML = '';
-            //             // 使用 ReactDOM 渲染复杂的 JSX
-            //             const root = ReactDOM.createRoot(editableRef.current);
-            //             root.render(limitText);
-            //         }
-            //     }
-            // });
             forUpdate();
         }
     }, []);

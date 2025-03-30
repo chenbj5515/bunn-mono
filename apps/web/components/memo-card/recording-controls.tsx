@@ -1,0 +1,288 @@
+"use client"
+
+import React, { useState, useRef, useEffect } from "react";
+import { Mic, Check, Play, RotateCcw } from "lucide-react";
+import Image from "next/image";
+
+interface RecordingControlsProps {
+    weakBorder?: boolean;
+}
+
+export function RecordingControls({ weakBorder = false }: RecordingControlsProps) {
+    const [state, setState] = useState<"idle" | "recording" | "completed">("idle");
+    const [isBreathing, setIsBreathing] = useState(true);
+    const [audioURL, setAudioURL] = useState<string | null>(null);
+    const [volume, setVolume] = useState<number[]>(Array(20).fill(2));
+
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const dataArrayRef = useRef<Uint8Array | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    // 呼吸效果
+    useEffect(() => {
+        if (state === "idle") {
+            const breathingInterval = setInterval(() => {
+                setIsBreathing((prev) => !prev);
+            }, 1500);
+
+            return () => clearInterval(breathingInterval);
+        }
+    }, [state]);
+
+    // 清理资源
+    useEffect(() => {
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+
+            if (silenceTimeoutRef.current) {
+                clearTimeout(silenceTimeoutRef.current);
+            }
+
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach((track) => track.stop());
+            }
+
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+            }
+        };
+    }, []);
+
+    // 开始录音
+    const startRecording = async () => {
+        try {
+            // 获取麦克风流
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            streamRef.current = stream;
+
+            // 创建音频上下文和分析器
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioContextRef.current = audioContext;
+
+            const analyser = audioContext.createAnalyser();
+            analyserRef.current = analyser;
+
+            // 配置分析器
+            analyser.fftSize = 128;
+            analyser.smoothingTimeConstant = 0.3;
+
+            // 创建数据数组
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            dataArrayRef.current = dataArray;
+
+            // 连接音频源到分析器
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+
+            // 创建媒体录制器
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunksRef.current.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+                const url = URL.createObjectURL(audioBlob);
+                setAudioURL(url);
+            };
+
+            // 开始录音
+            mediaRecorder.start();
+            setState("recording");
+
+            // 开始音量可视化
+            updateVisualizer();
+
+            // 设置静音检测
+            setupSilenceDetection();
+        } catch (error) {
+            console.error("Error accessing microphone:", error);
+        }
+    };
+
+    // 音量可视化
+    const updateVisualizer = () => {
+        if (state !== "recording" || !analyserRef.current || !dataArrayRef.current) return;
+
+        // 获取频率数据
+        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+
+        // 计算新的音量数组
+        const newVolume = Array(20)
+            .fill(0)
+            .map((_, i) => {
+                // 使用不同频率范围的数据
+                const index = Math.floor((i * dataArrayRef.current!.length) / 20);
+                // 映射到高度，最大值255映射到30
+                return Math.max(2, Math.min(30, dataArrayRef.current?.[index] ?? 0 / 8));
+            });
+
+        setVolume(newVolume);
+
+        // 继续更新
+        animationFrameRef.current = requestAnimationFrame(updateVisualizer);
+    };
+
+    // 设置静音检测
+    const setupSilenceDetection = () => {
+        silenceTimeoutRef.current = setInterval(() => {
+            if (!analyserRef.current || !dataArrayRef.current) return;
+
+            // 获取频率数据
+            analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+
+            // 计算平均音量
+            let sum = 0;
+            for (let i = 0; i < dataArrayRef.current.length; i++) {
+                sum += dataArrayRef.current?.[i] ?? 0;
+            }
+            const average = sum / dataArrayRef.current.length;
+
+            // 如果音量低于阈值，停止录音
+            if (average < 10) {
+                stopRecording();
+            }
+        }, 2000); // 每2秒检查一次
+    };
+
+    // 停止录音
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && state === "recording") {
+            // 停止录音
+            mediaRecorderRef.current.stop();
+
+            // 停止所有轨道
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach((track) => track.stop());
+                streamRef.current = null;
+            }
+
+            // 清除计时器
+            if (silenceTimeoutRef.current) {
+                clearInterval(silenceTimeoutRef.current);
+                silenceTimeoutRef.current = null;
+            }
+
+            // 停止可视化
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
+
+            // 更新状态
+            setState("completed");
+        }
+    };
+
+    // 播放录音
+    const playRecording = () => {
+        if (audioURL && audioRef.current) {
+            audioRef.current.play();
+        }
+    };
+
+    // 重置
+    const resetRecording = () => {
+        if (audioURL) {
+            URL.revokeObjectURL(audioURL);
+        }
+        setAudioURL(null);
+        setState("idle");
+        setVolume(Array(20).fill(2));
+    };
+
+    // 处理按钮点击
+    const handleButtonClick = () => {
+        if (state === "idle") {
+            startRecording();
+        } else if (state === "recording") {
+            stopRecording();
+        } else if (state === "completed") {
+            playRecording();
+        }
+    };
+
+    // const borderClass = weakBorder ? 'border-gray-200' : 'border-[#1d283a]';
+
+    return (
+        <div className="flex flex-col justify-center items-center gap-4">
+            <div className="relative">
+                {/* 重置按钮 */}
+                {state === "completed" && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            resetRecording()
+                        }}
+                        className="top-1/2 -left-12 absolute flex justify-center items-center bg-gray-100 hover:bg-gray-200 rounded-full w-10 h-10 transition-colors -translate-y-1/2"
+                    >
+                        <RotateCcw className="w-5 h-5 text-gray-600" />
+                    </button>
+                )}
+
+                <div className="flex justify-center items-center bg-[rgb(247, shadow-neumorphic hover:shadow-neumorphic-button-hover rounded-full w-12 sm:w-14 h-12 sm:h-14 transition-all cursor-pointer 247, 247)]">
+                    <Image src="/icon/microphone.png" alt="mic" width={30} height={30} />
+                </div>
+                {/* 主按钮 */}
+                {/* <button
+                    onClick={handleButtonClick}
+                    className={`relative flex items-center justify-center transition-all duration-300 ${state === "idle"
+                            ? "w-20 h-20 rounded-[24px] border border-[#cacaca]"
+                            : state === "recording"
+                                ? "w-20 h-20 rounded-[24px] bg-red-50 border border-red-200"
+                                : "w-20 h-20 rounded-full bg-white border-2 border-green-400"
+                        }`}
+                >
+                    {state === "idle" && (
+                        // <Mic
+                        //     className={`w-7 h-7 text-[#9AA1AE] transition-transform duration-1000 ${isBreathing ? "scale-100" : "scale-90"}`}
+                        // />
+                        <Image src="/icon/microphone.png" alt="mic" width={40} height={40} />
+                    )}
+
+                    {state === "recording" && <div className="bg-red-500 rounded-full w-8 h-8 animate-pulse" />}
+
+                    {state === "completed" &&
+                        (state === "completed" && audioURL ? (
+                            <Play className="w-6 h-6 text-green-500" />
+                        ) : (
+                            <Check className="w-8 h-8 text-green-500" />
+                        ))}
+                </button> */}
+            </div>
+
+            {/* 录音状态文字 */}
+            {state === "recording" && <div className="text-gray-500 text-sm">recording</div>}
+
+            {/* 音量可视化 */}
+            {/* {state === "recording" && (
+                <div className="flex justify-center items-end gap-[2px] w-40 h-24">
+                    {volume.map((v, i) => (
+                        <div
+                            key={i}
+                            className="bg-red-400 rounded-full w-1.5"
+                            style={{
+                                height: `${v}px`,
+                                transition: "height 50ms ease-out",
+                            }}
+                        />
+                    ))}
+                </div>
+            )} */}
+
+            {/* 隐藏的音频元素 */}
+            <audio ref={audioRef} src={audioURL || undefined} />
+        </div>
+    );
+} 

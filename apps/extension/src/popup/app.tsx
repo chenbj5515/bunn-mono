@@ -128,7 +128,7 @@ export default function SettingsPage() {
         ) : (
           <button
             onClick={handleSignIn}
-            className="px-4 py-2 border border-gray-300 hover:border-black rounded-[8px] font-medium text-[#1a1a1a] text-[14px] hover:text-[#595a5d] transition cursor-pointer"
+            className="px-4 py-2 border border-gray-300 hover:border-black rounded-[8px] w-[100px] font-medium text-[#1a1a1a] text-[14px] hover:text-[#595a5d] transition cursor-pointer"
           >
             {t('common.login')}
           </button>

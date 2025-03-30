@@ -7,7 +7,6 @@ import { Dictation } from "@/components/dictation";
 import { Card } from "ui/components/card";
 import { ExternalLink } from "lucide-react";
 import { deleteMemoCard, updateMemoCardTranslation, updatePronunciation, updateOriginalText } from "./server-functions";
-import { useAudioRecorder } from "@/hooks/audio";
 import { Button } from "ui/components/button";
 import { usePathname } from "next/navigation";
 import { cardIdAtom } from "@/lib/atom";
@@ -15,6 +14,7 @@ import { useSetAtom } from "jotai";
 import { memoCard } from "@db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 import { useTranslations } from 'next-intl';
+import { RecordingControls } from "./recording-controls";
 
 export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     onDelete?: (id: string) => void;
@@ -38,9 +38,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
 
     const t = useTranslations('memoCard');
 
-    const [recorderPressed, setRecorderPressedState] = React.useState(false);
-    const [recordPlayBtnPressed, setRecordPlayBtnPressed] = React.useState(false);
-
     const [isFocused, setIsFocused] = React.useState(false);
 
     const translationTextRef = React.useRef<HTMLDivElement>(null);
@@ -51,8 +48,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const pathname = usePathname();
 
     const setCardId = useSetAtom(cardIdAtom);
-
-    const { startRecording, stopRecording, playRecording } = useAudioRecorder();
 
     const cardRef = React.useRef<HTMLDivElement>(null);
 
@@ -74,20 +69,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                 voiceName: "ja-JP-NanamiNeural",
             });
         }
-    }
-
-    function handleRecordBtnClick() {
-        setRecorderPressedState((prev) => !prev);
-        if (recorderPressed) {
-            stopRecording();
-        } else {
-            startRecording();
-        }
-    }
-
-    function handleRecordPlayBtnClick() {
-        setRecordPlayBtnPressed((prev) => !prev);
-        playRecording();
     }
 
     function handleFocus() {
@@ -123,7 +104,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     return (
         <Card
             ref={cardRef}
-            className={`w-[90%] m-auto text-[17px] relative p-5 border ${weakBorder ? 'border-gray-200' : 'border-black'} text-left leading-[1.9] tracking-[1.5px]`}
+            className={`shadow-neumorphic w-[86%] m-auto text-[17px] relative p-5 border ${weakBorder ? 'border-gray-200' : ''} text-left leading-[1.9] tracking-[1.5px]`}
             style={{
                 // width: width ? (typeof width === 'number' ? `${width}px` : width) : 'auto',
                 height: height ? (typeof height === 'number' ? `${height}px` : height) : 'auto',
@@ -143,7 +124,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                             href={contextUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`top-2 right-2 absolute flex justify-center items-center dark:bg-bgDark dark:shadow-none border ${weakBorder ? 'border-gray-200' : 'border-black'} border-solid rounded-[50%] w-12 h-12 cursor-pointer play-button-bg`}
+                            className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-2 right-2 absolute flex justify-center items-center dark:bg-bgDark dark:shadow-none border border-solid rounded-[50%] w-12 h-12 cursor-pointer`}
                         >
                             {
                                 contextUrl.includes("youtube") ? (
@@ -173,7 +154,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                             <div className="group top-2 right-2 absolute">
                                 <div className="relative pb-[68px] w-12">
                                     <div
-                                        className={`z-10 relative flex justify-center items-center bg-white dark:bg-bgDark dark:shadow-none border ${weakBorder ? 'border-gray-200' : 'border-black'} border-solid rounded-full w-12 h-12 transition-all duration-300 cursor-pointer play-button-bg`}
+                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover z-10 relative flex justify-center items-center bg-white dark:bg-bgDark dark:shadow-none border-solid rounded-full w-12 h-12 transition-all duration-300 cursor-pointer`}
                                         onClick={handlePlayBtn}
                                     >
                                         <svg
@@ -193,7 +174,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className={`top-0 left-0 absolute flex justify-center items-center bg-white hover:bg-gray-100 opacity-0 group-hover:opacity-100 border ${weakBorder ? 'border-gray-200' : 'border-black'} rounded-full w-12 h-12 transition-all group-hover:translate-y-14 duration-300`}
+                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-0 left-0 absolute flex justify-center items-center bg-white hover:bg-gray-100 opacity-0 group-hover:opacity-100 rounded-full w-12 h-12 transition-all group-hover:translate-y-14 duration-300`}
                                         onClick={() => window.open(contextUrl, "_blank")}
                                     >
                                         <ExternalLink className="w-5 h-5" />
@@ -205,7 +186,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                 </>
             ) : (
                 <div
-                    className={`top-2 right-2 absolute dark:bg-bgDark dark:shadow-none border ${weakBorder ? 'border-gray-200' : 'border-black'} border-solid rounded-[50%] w-12 h-12 cursor-pointer play-button-bg`}
+                    className={`shadow-neumorphic top-2 right-2 absolute dark:bg-bgDark dark:shadow-none border ${weakBorder ? 'border-gray-200' : ''} border-solid rounded-[50%] w-12 h-12 cursor-pointer play-button-bg`}
                     onClick={handlePlayBtn}
                 >
                     <svg
@@ -272,30 +253,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     </span>
                 </div>
 
-                <div className="flex justify-center">
-                    {/* 录音ボタン */}
-                    <div className="group inline-block relative mr-[30px] w-[40px] h-[40px]">
-                        <i className="top-[50%] left-[50%] z-[10] absolute -translate-x-1/2 -translate-y-1/2 ri-mic-fill"></i>
-                        <input
-                            checked={recorderPressed}
-                            onChange={handleRecordBtnClick}
-                            type="checkbox"
-                            className="peer top-0 left-0 z-[11] absolute opacity-0 w-full h-full cursor-pointer double-click"
-                        />
-                        <span className={`block top-1/2 left-1/2 absolute bg-white dark:bg-bgDark dark:shadow-none group-active:shadow-custom peer-active:dark:shadow-darkActive peer-checked:dark:shadow-darkActive peer-checked:shadow-buttonActive group-active:filter-blurHalf peer-active:dark:filter-blurHalf peer-checked:filter-blurHalf border ${weakBorder ? 'border-gray-200' : 'border-[#1d283a]'} rounded-[68.8px] w-[50px] h-[50px] transition-all -translate-x-1/2 -translate-y-1/2 duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]`}></span>
-                    </div>
-                    {/* 录音プレーボタン */}
-                    <div className="group inline-block relative w-[40px] h-[40px]">
-                        <i className="top-[50%] left-[50%] z-[10] absolute text-[22px] -translate-x-1/2 -translate-y-1/2 ri-play-circle-fill"></i>
-                        <input
-                            checked={recordPlayBtnPressed}
-                            onChange={handleRecordPlayBtnClick}
-                            type="checkbox"
-                            className="peer top-0 left-0 z-[11] absolute opacity-0 w-full h-full cursor-pointer"
-                        />
-                        <span className={`block top-1/2 left-1/2 absolute bg-white dark:bg-bgDark dark:shadow-none group-active:shadow-buttonActive peer-active:dark:shadow-darkActive group-active:filter-blurHalf border ${weakBorder ? 'border-gray-200' : 'border-[#1d283a]'} rounded-[68.8px] w-[50px] h-[50px] transition-all -translate-x-1/2 -translate-y-1/2 duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]`}></span>
-                    </div>
-                </div>
+                <RecordingControls weakBorder={weakBorder} />
 
                 <div className="mb-0">
                     {
