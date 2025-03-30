@@ -454,6 +454,7 @@
   },
   "usageGuide": {
     "title": "Usage Guide",
+    "description": "Use these keyboard shortcuts to perform different actions",
     "forBestResults": "After copying, paste the content to",
     "BunnIsBest": "Bunn provides translation, phonetic symbols, shadowing practice and dictation features. It also records the context of each copy, allowing you to instantly replay the scene anytime.",
     "shortcuts": {
@@ -491,7 +492,9 @@
       "officialPage": "official OpenAI settings page",
       "toObtain": "to obtain your key.",
       "saveSettings": "Save Settings",
-      "alreadySetup": "You have already set up your OpenAI API key"
+      "alreadySetup": "You have already set up your OpenAI API key",
+      "invalidKey": "Invalid API key, please check and enter again",
+      "saveFailed": "Failed to save API key"
     },
     "signOut": "Sign Out",
     "loading": "Loading..."

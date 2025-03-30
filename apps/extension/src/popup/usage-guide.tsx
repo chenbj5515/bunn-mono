@@ -6,8 +6,6 @@ import "@/utils/i18n"; // 确保导入i18n配置
 export default function UsageGuide() {
   const { t } = useTranslation();
 
-  // 分割文本为前缀、Bunn部分和后缀
-
   return (
     <Card>
       <CardHeader>
@@ -17,6 +15,9 @@ export default function UsageGuide() {
             <CardTitle className="text-lg">{t('usageGuide.title')}</CardTitle>
           </div>
         </div>
+        <CardDescription>
+          {t('usageGuide.description')}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

@@ -454,6 +454,7 @@
     },
     "usageGuide": {
         "title": "使用指南",
+        "description": "你可以使用如下快捷鍵完成不同的操作",
         "forBestResults": "複製後，把內容貼到",
         "BunnIsBest": "Bunn會提供翻譯、音標、影子跟讀和默寫等功能，並且Bunn還會記錄這次複製發生的場景，你可以隨時一鍵進行場景重現。",
         "shortcuts": {
@@ -491,7 +492,9 @@
             "officialPage": "OpenAI 官方設定頁面",
             "toObtain": "取得您的金鑰。",
             "saveSettings": "儲存設定",
-            "alreadySetup": "您已經設定好 OpenAI API 金鑰"
+            "alreadySetup": "您已經設定好 OpenAI API 金鑰",
+            "invalidKey": "無效的API金鑰，請檢查並重新輸入",
+            "saveFailed": "儲存API金鑰失敗"
         },
         "signOut": "登出",
         "loading": "載入中..."

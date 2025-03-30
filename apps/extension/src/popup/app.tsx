@@ -13,6 +13,7 @@ import MissingKey from "./missing-key"
 // 导入i18n配置
 import "@/utils/i18n"
 import UsageGuide from "./usage-guide"
+import ManageApiKey from "./manage-api-key"
 
 // 根据新接口返回格式定义接口
 export interface SessionResponse {
@@ -92,7 +93,7 @@ export default function SettingsPage() {
     })
   }, [])
 
-  function handleSignIn() {}
+  function handleSignIn() { }
 
   // 点击"订阅引导"时，打开新的 tab 访问订阅引导页（替换下面的 URL）
   // const handleSubscribeGuide = () => {
@@ -117,9 +118,16 @@ export default function SettingsPage() {
         )}
         <LanguageSelector />
       </div>
-      {
-        user || storedApiKey ? <UsageGuide/> : <MissingKey />
-      }
+      {user ? (
+        <UsageGuide />
+      ) : storedApiKey ? (
+        <>
+          <UsageGuide />
+          <ManageApiKey storedApiKey={storedApiKey} highlightOnHover={false} />
+        </>
+      ) : (
+        <MissingKey />
+      )}
     </div>
   )
 }

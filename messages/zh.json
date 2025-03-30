@@ -453,6 +453,7 @@
     },
     "usageGuide": {
         "title": "使用指南",
+        "description": "你可以使用如下快捷键完成不同的操作",
         "forBestResults": "复制后，把内容粘贴到",
         "BunnIsBest": "Bunn会给提供翻译，音标，影子跟读和默写等功能，并且Bunn还会记录这次复制发生的场景，你可以随时一键进行场景再现。",
         "shortcuts": {
@@ -490,7 +491,9 @@
           "officialPage": "OpenAI 官方设置页面",
           "toObtain": "获取您的密钥。",
           "saveSettings": "保存设置",
-          "alreadySetup": "您已经设置了 OpenAI API 密钥"
+          "alreadySetup": "您已经设置了 OpenAI API 密钥",
+          "invalidKey": "无效的API Key，请检查并重新输入",
+          "saveFailed": "保存API Key失败"
         },
         "signOut": "退出登录",
         "loading": "加载中..."

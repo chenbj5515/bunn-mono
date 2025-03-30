@@ -1,10 +1,10 @@
-import ApiKeyForm from "./api-key-form";
 import { useState } from "react";
-import {  Card, CardContent, CardDescription, CardHeader, CardTitle  } from "ui/components/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "ui/components/card";
 import { useTranslation } from "react-i18next";
-import { Key, UserCircle } from "lucide-react"
+import { UserCircle } from "lucide-react"
 import SignIn from "./sign-in";
 import "@/utils/i18n"; // 确保导入i18n配置
+import ManageApiKey from "./manage-api-key";
 
 export default function MissingKey() {
     const [storedApiKey, setStoredApiKey] = useState("")  // 新增状态来存储 API key
@@ -42,21 +42,7 @@ export default function MissingKey() {
                 <div className="md:hidden flex justify-center items-center">
                     <div className="bg-background px-4 py-2 border rounded-full text-sm">{t('loginPage.or')}</div>
                 </div>
-
-                <Card className="relative hover:border-primary transition-colors">
-                    <CardHeader>
-                        <div className="flex items-center gap-2">
-                            <Key className="w-6 h-6" />
-                            <CardTitle className="text-lg">{t('loginPage.apiKey.title')}</CardTitle>
-                        </div>
-                        <CardDescription>
-                            {t('loginPage.apiKey.description')}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ApiKeyForm initialApiKey={storedApiKey} onSaved={() => window.location.reload()} />
-                    </CardContent>
-                </Card>
+                <ManageApiKey storedApiKey={storedApiKey} highlightOnHover={true} />
             </div>
         </>
     )

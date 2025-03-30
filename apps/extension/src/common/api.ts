@@ -14,8 +14,7 @@ export const generateText = async (
 ): Promise<string> => {
   try {
     // 尝试获取API Key
-    // const apiKey = await getApiKey();
-    const apiKey = false;
+    const apiKey = await getApiKey();
     
     if (apiKey) {
       // 有API Key，直接使用OpenAI SDK
