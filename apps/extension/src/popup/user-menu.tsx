@@ -24,8 +24,8 @@ export function UserMenu({ user }: UserMenuProps) {
     return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
   };
 
-  const handleLogout = () => {
-    api.post("/api/auth/sign-out")
+  const handleLogout = async () => {
+    await api.post("/api/auth/sign-out")
     window.location.reload()
   };
 

@@ -11,7 +11,8 @@
             "termsOfService": "服务条款",
             "privacyPolicy": "隐私政策",
             "businessDisclosure": "特定商取引法に基づく表示"
-        }
+        },
+        "back": "返回"
     },
     "home": {
         "title": "用AI学习日语",
@@ -485,7 +486,7 @@
         "or": "或者",
         "apiKey": {
           "title": "使用 API 密钥",
-          "description": "提供您自己的 OpenAI API 密钥，无需账户即可使用扩展",
+          "description": "提供您自己的 OpenAI API 密钥，无需账户即可使用插件",
           "placeholder": "输入您的 OpenAI API 密钥",
           "visitPage": "访问",
           "officialPage": "OpenAI 官方设置页面",
