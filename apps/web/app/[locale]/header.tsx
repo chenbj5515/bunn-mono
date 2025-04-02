@@ -102,7 +102,7 @@ export function LoginedHeader() {
     return (
         <header className="top-0 z-[200] fixed flex justify-between items-center backdrop-blur-[3px] backdrop-saturate-[180%] p-[12px] w-full h-[64px] font-mono font-bold">
             <UserPanel />
-            <nav className="w-[620px]">
+            {/* <nav className="w-[620px]">
                 <ul className="flex justify-between items-center">
                     <li>
                         <Link href={`/memo-cards`} className={`text-[15px] font-medium px-4 py-2 rounded-full ${pathname === `/${locale}/memo-cards` ? 'text-[#a9aaab]' : 'hover:text-[#a9aaab]'}`}>{t('memoCards')}</Link>
@@ -124,7 +124,7 @@ export function LoginedHeader() {
                 />
                 <span className="top-1 left-2 z-[1] absolute shadow-crescent peer-checked:shadow-full-moon rounded-full w-5 h-5 transition peer-checked:translate-x-5 duration-300 ease-in-out"></span>
                 <span className="top-0 right-0 bottom-0 left-0 absolute bg-black peer-checked:bg-blue rounded-3xl transition duration-500 cursor-pointer"></span>
-            </label>
+            </label> */}
         </header>
     )
 }

@@ -26,94 +26,65 @@ export async function insertMemoCard(
     }
 
     // 默认值
-    let contentType: string | null = null;
-    let contentId: string | null = null;
+    let platform: string | null = null;
+    let seriesId: string | null = null;
+    const seriesTitle = contextContent?.seriesTitle || "";
+    const watchId = extractNetflixWatchID(url);
 
     // 处理Netflix URL
     if (url && url.includes('netflix.com/watch')) {
-        const watchID = extractNetflixWatchID(url);
-        if (watchID) {
-            contentType = "netflix series";
+        if (watchId) {
+            platform = "netflix";
 
-            // 检查series表中是否已存在该watchID的记录
             const existingSeries = await db.select()
                 .from(series)
                 .where(
                     and(
-                        eq(series.platform, "netflix"),
-                        eq(series.relatedId, watchID)
+                        eq(series.title, seriesTitle),
                     )
                 )
                 .limit(1);
 
             // 如果不存在，则创建新记录
             if (existingSeries.length === 0) {
-                // 获取series标题
-                // 注意：这里假设contextContent可能包含一个name或其他标识符
-                const seriesTitle = contextContent?.seriesTitle || ""
-                
-                // 默认封面URL为空字符串
-                let coverUrl = "";
-                
-                try {
-                    // 调用crawler API获取封面URL - 目前未实现
-                    // 这是一个保留的位置，未来实现获取封面功能
-                    // TODO: 实现获取剧集封面功能
-                    console.log("未来这里将获取封面URL:", seriesTitle);
-                } catch (error) {
-                    console.error("获取剧集封面失败:", error);
-                }
-                
-                // 使用Promise.all并行获取中文和英文译名
-                const [zhTitle, zhTWTitle,enTitle] = await Promise.all([
-                    client.api.ai["generate-text"].$post({
-                        json: {
-                            prompt: `给出${seriesTitle}」这个动画的中文译名，只给出译名文本，不要任何其他内容 `,
-                        }
-                    }).then(async response => {
-                        const result = await response.json();
-                        return result.success ? result.data : "";
-                    }),
 
-                    client.api.ai["generate-text"].$post({
-                        json: {
-                            prompt: `给出${seriesTitle}」这个动画的台湾版繁体字译名，只给出译名的文本，不要任何其他内容 `,
-                        }
-                    }).then(async response => {
-                        const result = await response.json();
-                        return result.success ? result.data : "";
-                    }),
-                    
-                    client.api.ai["generate-text"].$post({
-                        json: {
-                            prompt: `给出${seriesTitle}」这个动画的英文译名，只给出译名文本，不要任何其他内容 `,
-                        }
-                    }).then(async response => {
-                        const result = await response.json();
-                        return result.success ? result.data : "";
-                    })
-                ]);
+                const seriesList = [
+                    'attack-on-titan.jpg',
+                    'cyberpunk.png',
+                    'dragon-ball.webp',
+                    'eva.avif',
+                    'flower.jpeg',
+                    'hunter-x-hunter.webp',
+                    'jujutsu-kaisen.webp',
+                    'konann.jpg',
+                    'one-punch-man.webp',
+                    'seven-deadly-sins.webp',
+                    'summer-time-rerendering.webp',
+                    'weather-child.png',
+                    'your-name.jpeg'
+                ];
 
-                console.log(zhTitle, "zhTitle===")
-                console.log(enTitle, "enTitle===")
-                
-                const [newSeries] = await db.insert(series).values({
-                    relatedId: watchID,
-                    platform: "netflix",
-                    coverUrl,
-                    titles: {
-                        "zh": zhTitle,
-                        "zh-TW": zhTWTitle,
-                        "en": enTitle
+                const response = await client.api.ai["generate-text"].$post({
+                    json: {
+                        prompt: `${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的值，不要返回任何其他内容。 `,
                     }
+                })
+
+                const result = await response.json();
+                const seriesCover = result.success ? result.data : "";
+
+                const [newSeries] = await db.insert(series).values({
+                    platform: "netflix",
+                    coverUrl: seriesCover,
+                    title: seriesTitle
                 }).returning();
 
                 if (newSeries) {
-                    contentId = newSeries.id;
+                    seriesId = newSeries.id;
                 }
             } else if (existingSeries[0]) {
                 // 使用已存在的series记录
-                contentId = existingSeries[0].id;
+                seriesId = existingSeries[0].id;
             }
         }
     }
@@ -128,8 +99,8 @@ export async function insertMemoCard(
         createTime: sql`CURRENT_TIMESTAMP`,
         updateTime: sql`CURRENT_TIMESTAMP`,
         contextUrl: url,
-        contentType,
-        contentId
+        platform,
+        seriesId,
     }).returning();
 
     // 异步处理后续操作，不等待完成
@@ -138,55 +109,32 @@ export async function insertMemoCard(
         void (async () => {
             try {
                 // 确保newMemoCard存在，并且有contentId（表示这是一个剧集相关的记忆卡片）
-                if (contentId && contextContent) {
-                    // 创建用户行为日志
-                    await db.insert(userActionLogs).values({
-                        userId: session.user.id,
-                        actionType: "CREATE_MEMO",
-                        relatedId: newMemoCard.id,
-                        relatedType: "memo_card"
-                    });
-
+                if (seriesId && contextContent) {
                     // 检查是否需要添加series_metadata记录
                     if (contextContent.seriesNum && contextContent.episodeNumber) {
                         const season = parseInt(contextContent.seriesNum);
                         const episode = parseInt(contextContent.episodeNumber.replace(/[^0-9]/g, ''));
 
-                        console.log(contentId, "contentId===")
+                        console.log(seriesId, "contentId===")
                         console.log(season, "season===")
                         console.log(episode, "episode===")
-                        // 检查是否已存在匹配的记录
-                        const existingMetadata = await db.select()
-                            .from(seriesMetadata)
-                            .where(
-                                and(
-                                    eq(seriesMetadata.seriesId, contentId),
-                                    eq(seriesMetadata.season, season),
-                                    eq(seriesMetadata.episode, episode)
-                                )
-                            )
-                            .limit(1);
 
-                        // 如果不存在记录，则创建新记录
-                        if (existingMetadata.length === 0) {
-                            await db.insert(seriesMetadata).values({
-                                seriesId: contentId,
-                                memoCardId: newMemoCard.id,
-                                season: season,
-                                episode: episode,
-                                episodeTitle: contextContent.episodeTitle || null
-                            });
-                        }
+                        await db.insert(seriesMetadata).values({
+                            seriesId,
+                            memoCardId: newMemoCard.id,
+                            season: season,
+                            episode: episode,
+                            episodeTitle: contextContent.episodeTitle || null,
+                            watchId
+                        });
                     }
-                } else {
-                    // 如果不是剧集相关的，只创建用户行为日志
-                    await db.insert(userActionLogs).values({
-                        userId: session.user.id,
-                        actionType: "CREATE_MEMO",
-                        relatedId: newMemoCard.id,
-                        relatedType: "memo_card"
-                    });
                 }
+                await db.insert(userActionLogs).values({
+                    userId: session.user.id,
+                    actionType: "CREATE_MEMO",
+                    relatedId: newMemoCard.id,
+                    relatedType: "memo_card"
+                });
             } catch (error) {
                 // 记录错误但不影响主流程
                 console.error("处理记忆卡片相关元数据时出错:", error);

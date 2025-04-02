@@ -17,7 +17,8 @@ export default async function MemoCardsPage() {
     return new Error("Unauthorized")
   }
 
-  const [{ value: newCardsCount }] = await db.select({ 
+  // Safely get the count of new cards
+  const result = await db.select({
     value: count()
   }).from(memoCard)
     .where(
@@ -26,6 +27,7 @@ export default async function MemoCardsPage() {
         eq(memoCard.reviewTimes, 0)
       )
     );
+  const newCardsCount = result?.[0]?.value ?? 0;
 
   const newCardsPromise = db.select().from(memoCard)
     .where(

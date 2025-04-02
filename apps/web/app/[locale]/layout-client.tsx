@@ -21,7 +21,7 @@ export default function LayoutClient({
 
     const currentRoute = pathname.split('/').pop() || '';
 
-    const noNavPaths = ["exam", "login", "payment-result", "netflix"];
+    const noNavPaths = ["exam", "login", "payment-result"];
     const noNav = noNavPaths.includes(currentRoute);
 
     const unloginHeaderPaths = ["home", "guide", "pricing", "privacy-policy", "terms-of-service", "business-disclosure"];

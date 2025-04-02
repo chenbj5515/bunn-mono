@@ -96,12 +96,21 @@ async function handleCopySubtitle(e: KeyboardEvent) {
 
     setTimeout(async () => {
       const videoTitleElement = document.querySelectorAll('[data-uia="video-title"]')[0];
-      
-      const seriesTitle = videoTitleElement.children[0]?.textContent;
-      const episodeNumber = videoTitleElement.children[1]?.textContent;
-      const episodeTitle = videoTitleElement.children[2]?.textContent;
 
-      const seriesNum = await generateText(`${seriesTitle}这个动画，${episodeTitle}这集是第几季？只需要回答这个数字，不要回答其他任何内容。`);
+      let seriesTitle = '';
+      let episodeNumber = '';
+      let episodeTitle = '';
+      let seriesNum = '';
+
+      if (videoTitleElement.children.length > 0) {
+        seriesTitle = videoTitleElement.children[0]?.textContent || '';
+        episodeNumber = videoTitleElement.children[1]?.textContent || '';
+        episodeTitle = videoTitleElement.children[2]?.textContent || '';
+        seriesNum = await generateText(`${seriesTitle}这个动画，${episodeTitle}这集是第几季？只需要回答这个数字，不要回答其他任何内容。`);
+      } else {
+        seriesTitle = videoTitleElement.textContent || '';
+      }
+
 
       navigator.clipboard.writeText(JSON.stringify({
         ...subtitleData,

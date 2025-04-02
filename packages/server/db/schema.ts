@@ -120,8 +120,8 @@ export const memoCard = pgTable("memo_card", {
 	userId: text("user_id").default('chenbj').notNull(),
 	kanaPronunciation: text("kana_pronunciation"),
 	contextUrl: text("context_url"),
-	contentType: text('content_type'),      // 内容类型：'youtube channel', 'nextflix series'等
-	contentId: uuid('content_id'),          // 关联到具体内容的ID
+	platform: text('platform'),      // 内容类型：'youtube', 'nextflix series'等
+	seriesId: uuid('series_id').references(() => series.id, { onDelete: 'set null' }),          // 关联到具体内容的ID
 });
 
 export const userSubscription = pgTable("user_subscription", {
@@ -173,10 +173,9 @@ export const users = pgTable("users", {
 
 export const series = pgTable('series', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	relatedId: text('related_id').notNull(),  // 外部关联ID，如Netflix的81705187
-	platform: text('platform').notNull(),     // 平台名称，如"netflix"
-	coverUrl: text('cover_url').notNull(),    // 封面图片URL
-	titles: jsonb('titles'),                  // 多语言标题: {"zh": "中文标题", "en": "英文标题", "ja": "日语标题"}
+	title: text('title').notNull(),         // 系列标题
+	platform: text('platform').notNull(),   // 平台名称，如"netflix"
+	coverUrl: text('cover_url').notNull(),  // 封面图片URL
 	// 可以根据需要添加其他字段，如描述、评分等
 });
 
@@ -191,5 +190,21 @@ export const seriesMetadata = pgTable('series_metadata', {
 	season: integer('season'),              // 季数
 	episode: integer('episode'),            // 集数
 	episodeTitle: text('episode_title'),    // 集标题
+	watchId: text('watch_id'),              // 观看ID
 	// 可以添加其他剧集特有的元数据
 });
+
+export const userSeriesCovers = pgTable('user_series_covers', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	seriesId: uuid('series_id')
+		.notNull()
+		.references(() => series.id, { onDelete: 'cascade' }),
+	customCoverUrl: text('custom_cover_url').notNull(),
+	createTime: timestamp("create_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updateTime: timestamp("update_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	unique('user_series_cover_unique').on(table.userId, table.seriesId),
+]);
