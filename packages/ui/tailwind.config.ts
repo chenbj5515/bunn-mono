@@ -10,6 +10,7 @@ const config = {
     '../../packages/ui/src/components/**/*.{ts,tsx}',
     '../../apps/extension/src/popup/**/*.{ts,tsx}',
     '../../apps/extension/src/components/**/*.{ts,tsx}',
+    '../../apps/web/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
@@ -26,9 +27,10 @@ const config = {
         'full-moon': 'inset 15px -4px 0px 15px #fff000',
         'dark-shadow': '0px 0px 10px 1px #000000ee',
         'little-button': '0.1em 0.1em',
-        'shadow-neumorphic': '4px 4px 8px #bebebe, -4px -4px 8px #ffffff',
-        'shadow-neumorphic-weak': '1px 1px 2px #bebebe, -4px -4px 8px #ffffff',
-        'shadow-neumorphic-button-hover': 'inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff',
+        'poster': '8px 8px 10px #a0a0a0',
+        'neumorphic': '2px 2px 4px #bebebe, -4px -4px 8px #ffffff',
+        'neumorphic-weak': '1px 1px 2px #bebebe, -4px -4px 8px #ffffff',
+        'neumorphic-button-hover': 'inset 2px 2px 4px #bebebe, inset -4px -4px 8px #ffffff',
         buttonActive:
           "0 12px 25px -4px rgba(0, 0, 0, 0.4), inset 0 -8px 30px 1px rgba(255, 255, 255, 0.9), 0 -10px 15px -1px rgba(255, 255, 255, 0.6), inset 0 8px 25px 0 rgba(0, 0, 0, 0.4), inset 0 0 10px 1px rgba(255, 255, 255, 0.6)",
         darkActive:

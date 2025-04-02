@@ -8,6 +8,7 @@ import { DemoCard } from "@/components/memo-card/demo-card"
 import { DemoWordCard } from "@/components/word-card/demo-word-card"
 import { MemoCard } from "@/components/memo-card/memo-card"
 import DemoDailyReport from "@/components/daily-report/demo-daily-report";
+import { client } from "@server/lib/api-client";
 // import DemoExam from "@/components/exam/demo-exam"
 
 
@@ -79,7 +80,16 @@ export default function LandingPage() {
             // 恢复body滚动
             document.body.style.overflow = 'auto';
         }
-
+        client.api.crawler["get-series-cover"].$get({
+            query: {
+                seriesTitle: "电驭叛客：边缘行者"
+            }
+        }).then(async (res) => {
+           const data = await res.json()
+           console.log(data);
+        }).catch((err) => {
+            console.log(err)
+        })
         // 组件卸载时恢复滚动
         return () => {
             document.body.style.overflow = 'auto';
@@ -115,7 +125,7 @@ export default function LandingPage() {
                             msOverflowStyle: 'none', /* IE and Edge */
                         }}
                     >
-                        {
+                        {/* {
                             showDemo === 'memo'
                                 ? <DemoCard />
                                 : showDemo === 'exam'
@@ -130,7 +140,7 @@ export default function LandingPage() {
                             showMemoCard
                                 ? <MemoCard {...defaultWordCardInfo.memo_card} onDelete={() => { }} />
                                 : null
-                        }
+                        } */}
                     </div>
                 </div>
             ) : null}

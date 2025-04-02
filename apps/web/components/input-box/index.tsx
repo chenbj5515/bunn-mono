@@ -2,12 +2,19 @@
 import React, { useEffect, useRef } from "react";
 import { insertPlainTextAtCursor } from "@/utils";
 import { useForceUpdate } from "@/hooks";
-// import { checkLimit } from "@/server-functions/check-limit";
 import { LockIcon, HelpCircle } from "lucide-react";
-import * as ReactDOM from 'react-dom/client';
 import { useTranslations } from "next-intl";
 import { localCardListAtom } from "@/lib/atom";
 import { useSetAtom } from "jotai";
+
+export interface ContextContent {
+    url?: string;
+    text?: string;
+    seriesTitle?: string;
+    seriesNum?: string;
+    episodeNumber?: string;
+    episodeTitle?: string;
+}
 
 export function InputBox() {
     const editableRef = useRef<HTMLDivElement>(null);
@@ -18,6 +25,7 @@ export function InputBox() {
     const defaultText = t('inputPlaceholder');
 
     const setLocalCardList = useSetAtom(localCardListAtom);
+    const [contextContent, setContextContent] = React.useState<ContextContent | null>(null);
 
     const limitText = (
         <>
@@ -44,22 +52,9 @@ export function InputBox() {
             setLocalCardList((prev) => [...prev, {
                 key: Date.now(),
                 original_text: originalText.includes(":") ? originalText.split(":")[1]?.trim() || "ß" : originalText.trim(),
-                context_url: urlRef.current
+                context_url: urlRef.current,
+                contextContent
             }])
-
-            // 检查使用限制
-            // const hasReachedLimit = await checkLimit("memo_card");
-            // if (hasReachedLimit) {
-            //     setIsLimited(true);
-            //     if (editableRef.current) {
-            //         editableRef.current.innerHTML = '';
-            //         // 使用 ReactDOM 渲染复杂的 JSX
-            //         const root = ReactDOM.createRoot(editableRef.current);
-            //         root.render(limitText);
-            //     }
-            // } else if (editableRef.current) {
-            //     editableRef.current.textContent = "";
-            // }
             forUpdate();
         }
         catch (e) {
@@ -81,6 +76,7 @@ export function InputBox() {
             if ('text' in parsedData) {
                 insertPlainTextAtCursor(parsedData.text?.trim());
             }
+            setContextContent(parsedData);
         } else {
             urlRef.current = "";
             insertPlainTextAtCursor(plainText?.trim());
@@ -102,7 +98,12 @@ export function InputBox() {
             setLocalCardList((prev) => [...prev, {
                 key: Date.now(),
                 original_text: content,
-                context_url: urlRef.current
+                context_url: urlRef.current,
+                contextContent,
+                // seriesTitle: contextContent?.seriesTitle,
+                // seriesNum: contextContent?.seriesNum,
+                // episodeTitle: contextContent?.episodeTitle,
+                // episodeNumber: contextContent?.episodeNumber?.replace(/\D/g, ''),
             }])
             if (editableRef.current) {
                 editableRef.current.textContent = '';

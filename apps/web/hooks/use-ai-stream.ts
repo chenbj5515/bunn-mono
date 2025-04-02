@@ -59,7 +59,7 @@ export function useAIStream(
 ): StreamFetchResult {
   const { 
     model = 'gpt-4o',
-    endpoint = '/api/openai/stream',
+    endpoint = '/api/ai/generate-text-stream',
     onFinish, 
     onError, 
     onChunk,
@@ -88,15 +88,20 @@ export function useAIStream(
       try {
         // 构建URL
         const url = new URL(endpoint, window.location.origin);
-        url.searchParams.append('prompt', prompt);
-        url.searchParams.append('model', model);
         
-        // 添加额外参数
-        Object.entries(extraParams).forEach(([key, value]) => {
-          url.searchParams.append(key, value);
-        });
+        // 创建请求体数据
+        const requestBody = {
+          prompt,
+          model,
+          ...extraParams
+        };
 
         const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody),
           signal: abortController.signal
         });
         

@@ -7,6 +7,7 @@ import { Provider, useSetAtom } from 'jotai';
 import { Footer } from './footer';
 import { UnloginHeader, LoginedHeader } from './header';
 import { useHtmlBg } from '@/hooks/use-html-bg';
+import { Dock } from 'ui/components/dock';
 
 export default function LayoutClient({
     children,
@@ -20,7 +21,7 @@ export default function LayoutClient({
 
     const currentRoute = pathname.split('/').pop() || '';
 
-    const noNavPaths = ["exam", "login", "payment-result"];
+    const noNavPaths = ["exam", "login", "payment-result", "netflix"];
     const noNav = noNavPaths.includes(currentRoute);
 
     const unloginHeaderPaths = ["home", "guide", "pricing", "privacy-policy", "terms-of-service", "business-disclosure"];
@@ -41,6 +42,9 @@ export default function LayoutClient({
                     : noNav
                         ? null
                         : <LoginedHeader />
+            }
+            {
+                unloginHeader ? null : <Dock />
             }
             <div style={{
                 paddingTop: noNav ? 0 : "64px",

@@ -61,5 +61,5 @@ export default async function middleware(req: NextRequest) {
   }
 
   // 对于非根路由，使用next-intl的中间件处理国际化
-  return intlMiddleware(req);
+  return intlMiddleware(req as any);
 }

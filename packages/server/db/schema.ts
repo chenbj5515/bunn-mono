@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, foreignKey, uuid, integer, boolean, uniqueIndex, varchar, unique, serial, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, foreignKey, uuid, integer, boolean, uniqueIndex, varchar, unique, serial, pgEnum, jsonb } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const actionTypeEnum = pgEnum("action_type_enum", ['COMPLETE_SENTENCE_REVIEW', 'COMPLETE_WORD_REVIEW', 'COMPLETE_EXAM', 'FORGOT_WORD_MEANING', 'FORGOT_WORD_PRONUNCIATION', 'UNKNOWN_PHRASE_EXPRESSION', 'UNABLE_TO_UNDERSTAND_AUDIO', 'CREATE_MEMO', 'CREATE_WORD', 'COMPLETE_IMAGE_OCR', 'COMPLETE_TEXT_TRANSLATION_BY_EXTENSION'])
@@ -120,6 +120,8 @@ export const memoCard = pgTable("memo_card", {
 	userId: text("user_id").default('chenbj').notNull(),
 	kanaPronunciation: text("kana_pronunciation"),
 	contextUrl: text("context_url"),
+	contentType: text('content_type'),      // 内容类型：'youtube channel', 'nextflix series'等
+	contentId: uuid('content_id'),          // 关联到具体内容的ID
 });
 
 export const userSubscription = pgTable("user_subscription", {
@@ -168,3 +170,26 @@ export const users = pgTable("users", {
 }, (table) => [
 	unique("users_email_unique").on(table.email),
 ]);
+
+export const series = pgTable('series', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	relatedId: text('related_id').notNull(),  // 外部关联ID，如Netflix的81705187
+	platform: text('platform').notNull(),     // 平台名称，如"netflix"
+	coverUrl: text('cover_url').notNull(),    // 封面图片URL
+	titles: jsonb('titles'),                  // 多语言标题: {"zh": "中文标题", "en": "英文标题", "ja": "日语标题"}
+	// 可以根据需要添加其他字段，如描述、评分等
+});
+
+export const seriesMetadata = pgTable('series_metadata', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	seriesId: uuid('series_id')
+		.notNull()
+		.references(() => series.id, { onDelete: 'cascade' }),
+	memoCardId: uuid('memo_card_id')
+		.notNull()
+		.references(() => memoCard.id, { onDelete: 'cascade' }),
+	season: integer('season'),              // 季数
+	episode: integer('episode'),            // 集数
+	episodeTitle: text('episode_title'),    // 集标题
+	// 可以添加其他剧集特有的元数据
+});

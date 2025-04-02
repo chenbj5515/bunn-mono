@@ -1,23 +1,23 @@
 "use client"
-import React from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import { speakText } from "@utils/tts";
 import { Dictation } from "@/components/dictation";
 // import { ILoaclCard, deleteCard } from "@/store/local-cards-slice";
-import { useRefState, useTripleRightClick } from "@/hooks";
+import { useRefState } from "@/hooks";
 import { Card } from "ui/components/card";
-import { insertMemoCard, deleteMemoCard, updateMemoCardTranslation, updatePronunciation, updateOriginalText } from "./server-functions";
+import { insertMemoCard, updateMemoCardTranslation, updatePronunciation, updateOriginalText } from "./server-functions";
 import { useAudioRecorder } from "@/hooks/audio";
 import { ExternalLink } from "lucide-react";
-import { Button } from "ui/components/button";
 import { cardIdAtom, ILoaclCard, localCardListAtom } from "@/lib/atom";
 import { useSetAtom } from "jotai";
 import { memoCard } from "@db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 import { useAIStream } from "@/hooks/use-ai-stream";
+import { RecordingControls } from "./recording-controls";
 
 export default function MemoCardLocal(props: ILoaclCard) {
-    const { original_text, context_url } = props;
+    const { original_text, context_url, contextContent } = props;
     const setLocalCardList = useSetAtom(localCardListAtom)
     const setCardId = useSetAtom(cardIdAtom)
     const [recorderPressed, setRecorderPressedState] = React.useState(false);
@@ -38,12 +38,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
 
     const { startRecording, stopRecording, playRecording } = useAudioRecorder();
 
-    const ref = useTripleRightClick(async () => {
-        setLocalCardList(list => list.filter(item => item.original_text !== original_text))
-        if (cardInfoRef.current?.id) {
-            await deleteMemoCard(cardInfoRef.current.id);
-        }
-    })
+    const ref = useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
         if (ref.current) {
@@ -55,6 +50,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
         }
     }, [setCardId]);
 
+    console.log(original_text, "original_text===")
     useAIStream(
         original_text ? `${original_text}，给出这句话的中文翻译，注意一定要中文。` : '',
         {
@@ -73,7 +69,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
 
     async function handleAllDone() {
         if (translationTextRef.current?.textContent && kanaTextRef.current?.textContent) {
-            const record = await insertMemoCard(original_text, translationTextRef.current.textContent, kanaTextRef.current.textContent, context_url);
+            const record = await insertMemoCard(original_text, translationTextRef.current.textContent, kanaTextRef.current.textContent, context_url, contextContent);
             if (record) {
                 setCardInfo(JSON.parse(record))
             }
@@ -163,7 +159,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
     return (
         <Card
             ref={ref}
-            className="relative p-5 border border-black leading-[1.9] tracking-[1.5px]"
+            className={`shadow-neumorphic w-[86%] m-auto text-[17px] relative p-5 border text-left leading-[1.9] tracking-[1.5px]`}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
         >
@@ -175,7 +171,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
                             href={context_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="top-2 right-2 absolute flex justify-center items-center dark:bg-bgDark dark:shadow-none border border-black border-solid rounded-[50%] w-12 h-12 cursor-pointer play-button-bg"
+                            className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-2 right-2 absolute flex justify-center items-center dark:bg-bgDark dark:shadow-none border border-solid rounded-[50%] w-12 h-12 cursor-pointer`}
                         >
                             {
                                 context_url.includes("youtube") ? (
@@ -205,31 +201,23 @@ export default function MemoCardLocal(props: ILoaclCard) {
                             <div className="group top-2 right-2 absolute">
                                 <div className="relative pb-[68px] w-12">
                                     <div
-                                        className="z-10 relative flex justify-center items-center bg-white dark:bg-bgDark dark:shadow-none border border-black border-solid rounded-full w-12 h-12 transition-all duration-300 cursor-pointer play-button-bg"
+                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover z-10 relative flex justify-center items-center bg-white dark:bg-bgDark dark:shadow-none border-solid rounded-full w-12 h-12 transition-all duration-300 cursor-pointer`}
                                         onClick={handlePlayBtn}
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="currentColor"
-                                            height="20"
-                                            width="24"
-                                        >
-                                            <path
-                                                clipRule="evenodd"
-                                                d="M11.26 3.691A1.2 1.2 0 0 1 12 4.8v14.4a1.199 1.199 0 0 1-2.048.848L5.503 15.6H2.4a1.2 1.2 0 0 1-1.2-1.2V9.6a1.2 1.2 0 0 1 1.2-1.2h3.103l4.449-4.448a1.2 1.2 0 0 1 1.308-.26Zm6.328-.176a1.2 1.2 0 0 1 1.697 0A11.967 11.967 0 0 1 22.8 12a11.966 11.966 0 0 1-3.515 8.485 1.2 1.2 0 0 1-1.697-1.697A9.563 9.563 0 0 0 20.4 12a9.565 9.565 0 0 0-2.812-6.788 1.2 1.2 0 0 1 0-1.697Zm-3.394 3.393a1.2 1.2 0 0 1 1.698 0A7.178 7.178 0 0 1 18 12a7.18 7.18 0 0 1-2.108 5.092 1.2 1.2 0 1 1-1.698-1.698A4.782 4.782 0 0 0 15.6 12a4.78 4.78 0 0 0-1.406-3.394 1.2 1.2 0 0 1 0-1.698Z"
-                                                fillRule="evenodd"
-                                            ></path>
-                                        </svg>
+                                        <Image
+                                            src="/icon/play-audio.svg"
+                                            alt="play audio"
+                                            width={24}
+                                            height={20}
+                                            className="w-6 h-5"
+                                        />
                                     </div>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="top-0 left-0 absolute flex justify-center items-center bg-white hover:bg-gray-100 opacity-0 group-hover:opacity-100 border border-black rounded-full w-12 h-12 transition-all group-hover:translate-y-14 duration-300"
+                                    <div
+                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-0 left-0 absolute flex justify-center items-center bg-white opacity-0 group-hover:opacity-100 rounded-full w-12 h-12 transition-all group-hover:translate-y-14 duration-300`}
                                         onClick={() => window.open(context_url, "_blank")}
                                     >
                                         <ExternalLink className="w-5 h-5" />
-                                    </Button>
+                                    </div>
                                 </div>
                             </div>
                         </>
@@ -237,23 +225,16 @@ export default function MemoCardLocal(props: ILoaclCard) {
                 </>
             ) : (
                 <div
-                    className="top-2 right-2 absolute dark:bg-bgDark dark:shadow-none border border-black border-solid rounded-[50%] w-12 h-12 cursor-pointer play-button-bg"
+                    className={`shadow-neumorphic top-2 right-2 absolute dark:bg-bgDark dark:shadow-none border border-solid rounded-[50%] w-12 h-12 cursor-pointer play-button-bg`}
                     onClick={handlePlayBtn}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        height="20"
-                        width="24"
-                        className="top-[50%] left-[50%] absolute -translate-x-1/2 -translate-y-1/2"
-                    >
-                        <path
-                            clipRule="evenodd"
-                            d="M11.26 3.691A1.2 1.2 0 0 1 12 4.8v14.4a1.199 1.199 0 0 1-2.048.848L5.503 15.6H2.4a1.2 1.2 0 0 1-1.2-1.2V9.6a1.2 1.2 0 0 1 1.2-1.2h3.103l4.449-4.448a1.2 1.2 0 0 1 1.308-.26Zm6.328-.176a1.2 1.2 0 0 1 1.697 0A11.967 11.967 0 0 1 22.8 12a11.966 11.966 0 0 1-3.515 8.485 1.2 1.2 0 0 1-1.697-1.697A9.563 9.563 0 0 0 20.4 12a9.565 9.565 0 0 0-2.812-6.788 1.2 1.2 0 0 1 0-1.697Zm-3.394 3.393a1.2 1.2 0 0 1 1.698 0A7.178 7.178 0 0 1 18 12a7.18 7.18 0 0 1-2.108 5.092 1.2 1.2 0 1 1-1.698-1.698A4.782 4.782 0 0 0 15.6 12a4.78 4.78 0 0 0-1.406-3.394 1.2 1.2 0 0 1 0-1.698Z"
-                            fillRule="evenodd"
-                        ></path>
-                    </svg>
+                    <Image
+                        src="/icon/play-audio.svg"
+                        alt="play audio"
+                        width={24}
+                        height={20}
+                        className="top-[50%] left-[50%] absolute w-6 h-5 -translate-x-1/2 -translate-y-1/2"
+                    />
                 </div>
             )}
             <div className="flex mb-[28px]">
@@ -294,30 +275,9 @@ export default function MemoCardLocal(props: ILoaclCard) {
                 className="pr-[42px] outline-none leading-[3] whitespace-pre-wrap"
             >
             </div>
-            <div className="relative flex justify-center mt-3 cursor-pointer">
-                {/* 录音ボタン */}
-                <div className="group inline-block relative mr-[30px] w-[40px] h-[40px]">
-                    <i className="top-[50%] left-[50%] z-[10] absolute -translate-x-1/2 -translate-y-1/2 ri-mic-fill"></i>
-                    <input
-                        checked={recorderPressed}
-                        onChange={handleRecordBtnClick}
-                        type="checkbox"
-                        className="peer top-0 left-0 z-[11] absolute opacity-0 w-full h-full cursor-pointer double-click"
-                    />
-                    <span className="block top-1/2 left-1/2 absolute bg-white dark:bg-bgDark dark:shadow-none group-active:shadow-custom peer-active:dark:shadow-darkActive peer-checked:dark:shadow-darkActive peer-checked:shadow-buttonActive group-active:filter-blurHalf peer-active:dark:filter-blurHalf peer-checked:filter-blurHalf border border-black rounded-[68.8px] w-[50px] h-[50px] transition-all -translate-x-1/2 -translate-y-1/2 duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]"></span>
-                </div>
-                {/* 录音プレーボタン */}
-                <div className="group inline-block relative w-[40px] h-[40px]">
-                    <i className="top-[50%] left-[50%] z-[10] absolute text-[22px] -translate-x-1/2 -translate-y-1/2 ri-play-circle-fill"></i>
-                    <input
-                        checked={recordPlayBtnPressed}
-                        onChange={handleRecordPlayBtnClick}
-                        type="checkbox"
-                        className="peer top-0 left-0 z-[11] absolute opacity-0 w-full h-full cursor-pointer"
-                    />
-                    <span className="block top-1/2 left-1/2 absolute bg-white dark:bg-bgDark dark:shadow-none group-active:shadow-buttonActive peer-active:dark:shadow-darkActive group-active:filter-blurHalf border border-black rounded-[68.8px] w-[50px] h-[50px] transition-all -translate-x-1/2 -translate-y-1/2 duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]"></span>
-                </div>
-            </div>
+           
+            <RecordingControls />
+
             <div className="relative flex flex-col mt-2">
                 {
                     cardInfoRef.current?.id ? (

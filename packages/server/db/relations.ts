@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { memoCard, wordCard, user, account, session, userSubscription } from "./schema";
+import { memoCard, wordCard, user, account, session, userSubscription, series, seriesMetadata } from "./schema";
 
 export const wordCardRelations = relations(wordCard, ({one}) => ({
 	memoCard: one(memoCard, {
@@ -8,8 +8,14 @@ export const wordCardRelations = relations(wordCard, ({one}) => ({
 	}),
 }));
 
-export const memoCardRelations = relations(memoCard, ({many}) => ({
+export const memoCardRelations = relations(memoCard, ({many, one}) => ({
 	wordCards: many(wordCard),
+	seriesMetadata: one(seriesMetadata),
+	series: one(series, {
+		fields: [memoCard.contentId],
+		references: [series.id],
+		relationName: 'seriesMemoCards'
+	}),
 }));
 
 export const accountRelations = relations(account, ({one}) => ({
@@ -36,5 +42,18 @@ export const userSubscriptionRelations = relations(userSubscription, ({one}) => 
 	user: one(user, {
 		fields: [userSubscription.userId],
 		references: [user.id]
+	}),
+}));
+
+export const seriesRelations = relations(series, ({many}) => ({
+	memoCards: many(memoCard, {
+		relationName: 'seriesMemoCards'
+	}),
+}));
+
+export const seriesMetadataRelations = relations(seriesMetadata, ({one}) => ({
+	memoCard: one(memoCard, {
+		fields: [seriesMetadata.memoCardId],
+		references: [memoCard.id]
 	}),
 }));

@@ -19,7 +19,7 @@ export default async function WordCardsApp() {
     const memoCardCount = await db.select({ count: sql<number>`cast(count(*) as integer)` })
         .from(memoCard)
         .where(eq(memoCard.userId, session.user.id))
-        .then(result => result[0].count);
+        .then(result => result[0]?.count ?? 0);
 
     // 如果有数据，获取当前用户的第一条记录
     const firstMemoCard = memoCardCount > 0 
@@ -51,7 +51,7 @@ export default async function WordCardsApp() {
             memo_card: result.memo_card
         }))) as Promise<TWordCard[]>;
 
-    const remainingCount = Math.max(0, 10 - newCardsCount[0].count);
+    const remainingCount = Math.max(0, 10 - (newCardsCount[0]?.count ?? 0));
 
     const reviewCardsPromise = remainingCount > 0 ? db.select()
         .from(wordCard)
