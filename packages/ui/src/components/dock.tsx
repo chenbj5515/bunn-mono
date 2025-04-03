@@ -31,7 +31,7 @@ export function Dock() {
             name: "Card", 
             icon: "/icon/card.png",
             onClick: () => router.push(`/${locale}/memo-cards`),
-            tooltip: "连续按下v键把剪切板中的内容制作为卡片"
+            tooltip: "连续两次按下v键把剪切板中的内容制作为卡片"
         },
         { 
             name: "YouTube", 

@@ -44,7 +44,7 @@ export function AppIcon({ name, icon, isHovered, onHover, onLeave, onClick, tool
                 </div>
             </motion.div>
 
-            {isHovered && (
+            {isHovered && tooltip && (
                 <motion.div
                     className="left-16 z-50 absolute min-w-[300px]"
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -52,12 +52,25 @@ export function AppIcon({ name, icon, isHovered, onHover, onLeave, onClick, tool
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 >
-                    <div className="relative bg-white shadow-md px-6 py-3 rounded-[24px] font-bold text-black text-2xl">
-                        {tooltip || name}
-                        <div className="top-1/2 left-[-6px] z-[-1] absolute bg-white shadow-md w-5 h-5 rotate-45 -translate-y-1/2 transform"></div>
+                    <div className="relative bg-white shadow-md px-6 py-3 rounded-[12px] w-[160px] text-[14px] text-black">
+                        {tooltip}
+                        <div className="top-1/2 left-[-6px] z-20 absolute bg-white w-5 h-5 rotate-45 -translate-y-1/2 transform"></div>
                     </div>
                 </motion.div>
             )}
+
+            {/* <motion.div
+                className="left-16 z-50 absolute min-w-[300px]"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+                <div className="relative bg-white shadow-md px-6 py-3 rounded-[24px] w-[160px] text-[14px] text-black">
+                    {tooltip}
+                    <div className="top-1/2 left-[-6px] z-[-1] absolute bg-white w-5 h-5 rotate-45 -translate-y-1/2 transform"></div>
+                </div>
+            </motion.div> */}
 
             <motion.div
                 className="bottom-0 absolute bg-black rounded-full w-1 h-1"
