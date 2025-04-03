@@ -27,24 +27,24 @@ export function Dock() {
     const locale = params.locale || "zh"
 
     const appIcons: AppIconData[] = [
-        { 
-            name: "Card", 
+        {
+            name: "Card",
             icon: "/icon/card.png",
             onClick: () => router.push(`/${locale}/memo-cards`),
             tooltip: "连续两次按下v键把剪切板中的内容制作为卡片"
         },
-        { 
-            name: "YouTube", 
+        {
+            name: "YouTube",
             icon: "/icon/youtube.png",
             onClick: () => router.push(`/${locale}/series-list/youtube`)
         },
-        { 
-            name: "Netflix", 
+        {
+            name: "Netflix",
             icon: "/icon/netflix-n.png",
             onClick: () => router.push(`/${locale}/series-list/netflix`)
         },
-        { 
-            name: "Twitter", 
+        {
+            name: "Twitter",
             icon: "/icon/x.png",
             onClick: () => window.open("https://twitter.com", "_blank")
         },
@@ -77,9 +77,9 @@ export function Dock() {
             <motion.div
                 className="flex flex-col justify-center items-center bg-[#0000000d] backdrop-blur-[12px] backdrop-saturate-[180%] px-2 pt-2 pb-4 border-[0.5px] border-white/20 rounded-2xl"
                 initial={{ opacity: 0, x: -100 }}
-                animate={{ 
-                    opacity: isDockVisible ? 1 : 0, 
-                    x: isDockVisible ? 0 : -100 
+                animate={{
+                    opacity: isDockVisible ? 1 : 0,
+                    x: isDockVisible ? 0 : -100
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
             >

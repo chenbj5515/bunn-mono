@@ -9,7 +9,7 @@ import { Card } from "ui/components/card";
 import { insertMemoCard, updateMemoCardTranslation, updatePronunciation, updateOriginalText } from "./server-functions";
 import { useAudioRecorder } from "@/hooks/audio";
 import { ExternalLink } from "lucide-react";
-import { cardIdAtom, ILoaclCard, localCardListAtom } from "@/lib/atom";
+import { cardIdAtom, ILoaclCard, localCardAtom } from "@/lib/atom";
 import { useSetAtom } from "jotai";
 import { memoCard } from "@db/schema";
 import type { InferSelectModel } from "drizzle-orm";
@@ -18,7 +18,7 @@ import { RecordingControls } from "./recording-controls";
 
 export default function MemoCardLocal(props: ILoaclCard) {
     const { original_text, context_url, contextContent } = props;
-    const setLocalCardList = useSetAtom(localCardListAtom)
+    const setLocalCard = useSetAtom(localCardAtom)
     const setCardId = useSetAtom(cardIdAtom)
     const [recorderPressed, setRecorderPressedState] = React.useState(false);
     const [recordPlayBtnPressed, setRecordPlayBtnPressed] = React.useState(false);
@@ -73,6 +73,16 @@ export default function MemoCardLocal(props: ILoaclCard) {
             if (record) {
                 setCardInfo(JSON.parse(record))
             }
+            setLocalCard({
+                state: 'added',
+                localCardList: []
+            })
+            setTimeout(() => {
+                setLocalCard({
+                    state: 'idle',
+                    localCardList: []
+                })
+            }, 2000)
         }
     }
 

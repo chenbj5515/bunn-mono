@@ -22,7 +22,7 @@ export interface Poster {
 
 // 服务器组件现在是 async 函数
 const SeriesListPage = async ({ params }: SeriesListPageProps) => {
-  const { platform } = params
+  const { platform } = await params
 
   const session = await getSession()
 

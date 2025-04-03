@@ -8,6 +8,16 @@ export interface ILoaclCard {
     contextContent: ContextContent | null;
 }
 
-export const localCardListAtom = atom<ILoaclCard[]>([]);
+export type LocalCardListState = 'idle' | 'adding' | 'added';
+
+export interface ILocalCardState {
+    state: LocalCardListState;
+    localCardList: ILoaclCard[];
+}
+
+export const localCardAtom = atom<ILocalCardState>({
+    state: 'idle',
+    localCardList: []
+});
 
 export const cardIdAtom = atom<string>("");

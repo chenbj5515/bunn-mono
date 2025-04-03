@@ -4,7 +4,7 @@ import { insertPlainTextAtCursor } from "@/utils";
 import { useForceUpdate } from "@/hooks";
 import { LockIcon, HelpCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { localCardListAtom } from "@/lib/atom";
+import { localCardAtom } from "@/lib/atom";
 import { useSetAtom } from "jotai";
 
 export interface ContextContent {
@@ -24,37 +24,41 @@ export function InputBox() {
     const [isLimited, setIsLimited] = React.useState(false);
     const defaultText = t('inputPlaceholder');
 
-    const setLocalCardList = useSetAtom(localCardListAtom);
+    const setLocalCardList = useSetAtom(localCardAtom);
     const [contextContent, setContextContent] = React.useState<ContextContent | null>(null);
 
-    const limitText = (
-        <>
-            <LockIcon className="inline-block mr-1 w-4 h-4 align-text-bottom" />
-            {t('limitMessage')}
-            <span
-                className="text-blue-600 underline cursor-pointer"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    window.location.href = "/pricing";
-                }}
-            >
-                Bunn Premium
-            </span>
-            解锁。
-        </>
-    );
+    // const limitText = (
+    //     <>
+    //         <LockIcon className="inline-block mr-1 w-4 h-4 align-text-bottom" />
+    //         {t('limitMessage')}
+    //         <span
+    //             className="text-blue-600 underline cursor-pointer"
+    //             onClick={(e) => {
+    //                 e.stopPropagation();
+    //                 window.location.href = "/pricing";
+    //             }}
+    //         >
+    //             Bunn Premium
+    //         </span>
+    //         解锁。
+    //     </>
+    // );
     const ready2Send = editableRef.current?.textContent && editableRef.current?.textContent !== defaultText && !isLimited;
     const urlRef = useRef<string>("");
 
     async function handleSendBtnClick(originalText: string) {
         if (!originalText || originalText === defaultText || isLimited) return;
         try {
-            setLocalCardList((prev) => [...prev, {
-                key: Date.now(),
-                original_text: originalText.includes(":") ? originalText.split(":")[1]?.trim() || "ß" : originalText.trim(),
-                context_url: urlRef.current,
-                contextContent
-            }])
+            setLocalCardList({
+                state: 'adding',
+                localCardList: [
+                    {
+                        key: Date.now(),
+                        original_text: originalText.includes(":") ? originalText.split(":")[1]?.trim() || "ß" : originalText.trim(),
+                        context_url: urlRef.current,
+                        contextContent
+                    }]
+            })
             forUpdate();
         }
         catch (e) {
@@ -95,12 +99,17 @@ export function InputBox() {
             }
 
             event.preventDefault();
-            setLocalCardList((prev) => [...prev, {
-                key: Date.now(),
-                original_text: content,
-                context_url: urlRef.current,
-                contextContent,
-            }])
+            setLocalCardList({
+                state: 'adding',
+                localCardList: [
+                    {
+                        key: Date.now(),
+                        original_text: content,
+                        context_url: urlRef.current,
+                        contextContent,
+                    }
+                ]
+            })
             if (editableRef.current) {
                 editableRef.current.textContent = '';
             }

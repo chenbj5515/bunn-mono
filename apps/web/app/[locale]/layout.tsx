@@ -2,6 +2,7 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import LayoutClient from './layout-client';
+import { Provider } from 'jotai';
 
 export default async function LocaleLayout({
   children,
@@ -25,7 +26,9 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <LayoutClient>{children}</LayoutClient>
+      <Provider>
+        <LayoutClient>{children}</LayoutClient>
+      </Provider>
     </NextIntlClientProvider>
   );
 }

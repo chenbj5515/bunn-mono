@@ -80,16 +80,6 @@ export default function LandingPage() {
             // 恢复body滚动
             document.body.style.overflow = 'auto';
         }
-        client.api.crawler["get-series-cover"].$get({
-            query: {
-                seriesTitle: "电驭叛客：边缘行者"
-            }
-        }).then(async (res) => {
-           const data = await res.json()
-           console.log(data);
-        }).catch((err) => {
-            console.log(err)
-        })
         // 组件卸载时恢复滚动
         return () => {
             document.body.style.overflow = 'auto';

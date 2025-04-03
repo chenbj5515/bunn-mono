@@ -7,7 +7,7 @@ import { importSampleMemoCards } from "./server-functions"
 import { useAudioPermission } from "@/hooks/audio";
 import Loading from "ui/components/loading";
 import { useAtomValue } from "jotai";
-import { localCardListAtom } from "@/lib/atom";
+import { localCardAtom } from "@/lib/atom";
 import { memoCard } from "@db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 import { Trash } from "lucide-react";
@@ -23,7 +23,7 @@ interface IProps {
 function MemoCardContent(props: IProps) {
     const { newCardsPromise, forgottenCardsPromise } = props;
     const [isLoading, setIsLoading] = React.useState(false);
-    const localCards = useAtomValue(localCardListAtom)
+    const localCards = useAtomValue(localCardAtom)
     const t = useTranslations('memoCards');
 
     // 直接使用use钩子，不包装在try/catch中

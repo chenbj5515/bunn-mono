@@ -1,14 +1,16 @@
 "use client"
-import React, { useEffect } from 'react';
+import React, { useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import "remixicon/fonts/remixicon.css";
-import { localCardListAtom } from '@/lib/atom';
-import { Provider, useSetAtom } from 'jotai';
+import { localCardAtom } from '@/lib/atom';
+import { useSetAtom } from 'jotai';
 import { Footer } from './footer';
 import { UnloginHeader, LoginedHeader } from './header';
 import { useHtmlBg } from '@/hooks/use-html-bg';
-import { Dock } from 'ui/components/dock';
+import { Dock } from '@/components/dock/dock';
 import { useDoubleVKeyPress } from '@/hooks/events';
+import { insertMemoCard } from '@/components/memo-card/server-functions';
+import { client } from '@server/lib/api-client';
 
 export default function LayoutClient({
     children,
@@ -16,12 +18,99 @@ export default function LayoutClient({
     children: React.ReactNode;
 }>) {
     const pathname = usePathname();
-    const setLocalCardList = useSetAtom(localCardListAtom);
+    const setLocalCard = useSetAtom(localCardAtom);
+    const urlRef = useRef<string>("");
+    const contextContentRef = useRef<any>(null);
+
+    async function handleAllDone(original_text: string, translation: string, kana: string, context_url: string, contextContent: any) {
+        const record = await insertMemoCard(original_text, translation, kana, context_url, contextContent);
+        
+        console.log(record, "record========");
+        if (record) {
+            setLocalCard({
+                state: 'added',
+                localCardList: []
+            });
+            setTimeout(() => {
+                setLocalCard({
+                    state: 'idle',
+                    localCardList: []
+                });
+            }, 2000);
+        }
+    }
+
     useHtmlBg();
-    useDoubleVKeyPress(() => {
+    useDoubleVKeyPress(async () => {
         console.log("double v key pressed");
+        try {
+            const clipboardText = await navigator.clipboard.readText();
+            let parsedData;
+            try {
+                parsedData = JSON.parse(clipboardText);
+            } catch {
+                parsedData = clipboardText;
+            }
+
+            let original_text = "";
+            let context_url = "";
+            let contextContent = null;
+            if (typeof parsedData === 'object' && parsedData !== null) {
+                urlRef.current = parsedData?.url || "";
+                const originalText = 'text' in parsedData ? parsedData.text?.trim() : '';
+                contextContentRef.current = parsedData;
+                original_text = originalText;
+                context_url = urlRef.current;
+                contextContent = contextContentRef.current;
+
+            } else {
+                urlRef.current = "";
+                original_text = clipboardText?.trim();
+                context_url = "";
+                contextContent = null;
+            }
+            setLocalCard({
+                state: 'adding',
+                localCardList: [
+                    {
+                        key: Date.now(),
+                        original_text,
+                        context_url,
+                        contextContent,
+                    }
+                ]
+            });
+            if (!pathname.includes('memo-cards')) {
+                try {
+                    const [translationResultResponse, kanaResultResponse] = await Promise.all([
+                        client.api.ai["generate-text"].$post({
+                            json: {
+                                prompt: `${original_text}，给出这句话的中文翻译，注意一定要中文，不要返回翻译结果以外的任何内容。`
+                            }
+                        }),
+                        client.api.ai["generate-text"].$post({
+                            json: {
+                                prompt: `${original_text}，给出这句话的平假名读音，注意只需要平假名读音和对应位置的标点符号。`
+                            }
+                        })
+                    ]);
+
+                    console.log(translationResultResponse, "translationResultResponse========");
+                    const translationResult = await translationResultResponse.json();
+                    const kanaResult = await kanaResultResponse.json();
+
+                    console.log(translationResult, kanaResult, "translationResult, kanaResult========");
+                    if (translationResult.success && kanaResult.success) {
+                        handleAllDone(original_text, translationResult.data, kanaResult.data, context_url, contextContent);
+                    }
+                } catch (error) {
+                    console.error('AI generation failed:', error);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to read clipboard:", err);
+        }
     });
-    // const dispatch = useDispatch();
 
     const currentRoute = pathname.split('/').pop() || '';
 
@@ -31,15 +120,8 @@ export default function LayoutClient({
     const unloginHeaderPaths = ["home", "guide", "pricing", "privacy-policy", "terms-of-service", "business-disclosure"];
     const unloginHeader = unloginHeaderPaths.includes(currentRoute);
 
-    useEffect(() => {
-        setLocalCardList([]);
-        return () => {
-            setLocalCardList([]);
-        }
-    }, [pathname]);
-
     return (
-        <Provider>
+        <>
             {
                 unloginHeader
                     ? <UnloginHeader />
@@ -59,6 +141,6 @@ export default function LayoutClient({
             {
                 unloginHeader ? <Footer /> : null
             }
-        </Provider>
+        </>
     )
 }
