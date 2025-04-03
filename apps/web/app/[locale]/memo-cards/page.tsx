@@ -8,8 +8,6 @@ import { LocalCardList } from "@/components/memo-card-list";
 import { InputBox } from "@/components/input-box";
 import { WordCardAdder } from "@/components/word-adder";
 
-// import Loading from "ui/components/loading";
-
 export default async function MemoCardsPage() {
   const session = await getSession()
 

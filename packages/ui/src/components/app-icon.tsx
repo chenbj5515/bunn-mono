@@ -9,9 +9,10 @@ interface AppIconProps {
     onHover: () => void
     onLeave: () => void
     onClick?: () => void
+    tooltip?: string
 }
 
-export function AppIcon({ name, icon, isHovered, onHover, onLeave, onClick }: AppIconProps) {
+export function AppIcon({ name, icon, isHovered, onHover, onLeave, onClick, tooltip }: AppIconProps) {
     return (
         <motion.div
             className="relative flex justify-center items-center"
@@ -23,7 +24,7 @@ export function AppIcon({ name, icon, isHovered, onHover, onLeave, onClick }: Ap
         >
 
             <motion.div
-                className="relative flex justify-center items-center bg-white/80 shadow-md rounded-lg w-12 h-12"
+                className="relative flex justify-center items-center bg-white shadow-md rounded-lg w-12 h-12"
                 animate={{
                     scale: isHovered ? 1.2 : 1,
                     y: isHovered ? -5 : 0,
@@ -45,12 +46,16 @@ export function AppIcon({ name, icon, isHovered, onHover, onLeave, onClick }: Ap
 
             {isHovered && (
                 <motion.div
-                    className="left-[-120px] absolute bg-black/80 shadow-lg px-3 py-1.5 rounded-md text-white text-sm whitespace-nowrap"
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
+                    className="left-16 z-50 absolute min-w-[300px]"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 >
-                    {name}
+                    <div className="relative bg-white shadow-md px-6 py-3 rounded-[24px] font-bold text-black text-2xl">
+                        {tooltip || name}
+                        <div className="top-1/2 left-[-6px] z-[-1] absolute bg-white shadow-md w-5 h-5 rotate-45 -translate-y-1/2 transform"></div>
+                    </div>
                 </motion.div>
             )}
 

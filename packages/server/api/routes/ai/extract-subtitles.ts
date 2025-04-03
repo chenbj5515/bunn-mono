@@ -26,7 +26,7 @@ export const extractSubtitles = async (c: Context) => {
         const buffer = Buffer.from(arrayBuffer);
         const base64Image = buffer.toString('base64');
 
-        const promptText = "请只识别并输出图片底部的日文字幕文本，不要输出其他内容。如果没有字幕，请返回空字符串。";
+        const promptText = "请只识别并输出图片底部的日文字幕文本，不要输出其他内容。如果没有字幕，请返回''。";
 
         try {
             const response = await fetch('https://api.openai.com/v1/chat/completions', {

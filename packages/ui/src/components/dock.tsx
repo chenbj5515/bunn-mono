@@ -6,14 +6,33 @@ import { AppIcon } from "./app-icon"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
 
+// 调试模式：设置为 true 时 dock 将始终显示
+// 注释此行或设置为 false 时 dock 将仅在鼠标靠近左侧时显示
+// const DEBUG_MODE = false
+const DEBUG_MODE = true
+
+// 定义应用图标数据接口
+interface AppIconData {
+    name: string;
+    icon: string;
+    onClick: () => void;
+    tooltip?: string;
+}
+
 export function Dock() {
     const [hoveredIcon, setHoveredIcon] = useState<number | null>(null)
-    const [isDockVisible, setIsDockVisible] = useState(false)
+    const [isDockVisible, setIsDockVisible] = useState(DEBUG_MODE)
     const router = useRouter()
     const params = useParams()
     const locale = params.locale || "zh"
 
-    const appIcons = [
+    const appIcons: AppIconData[] = [
+        { 
+            name: "Card", 
+            icon: "/icon/card.png",
+            onClick: () => router.push(`/${locale}/memo-cards`),
+            tooltip: "连续按下v键把剪切板中的内容制作为卡片"
+        },
         { 
             name: "YouTube", 
             icon: "/icon/youtube.png",
@@ -32,6 +51,9 @@ export function Dock() {
     ]
 
     useEffect(() => {
+        // 如果是调试模式，不添加鼠标事件监听，dock 将始终显示
+        if (DEBUG_MODE) return
+
         const handleMouseMove = (e: MouseEvent) => {
             // 当鼠标在距离左边界70px范围内时显示Dock
             if (e.clientX <= 70) {
@@ -71,6 +93,7 @@ export function Dock() {
                             onHover={() => setHoveredIcon(index)}
                             onLeave={() => setHoveredIcon(null)}
                             onClick={app.onClick}
+                            tooltip={app.tooltip}
                         />
                     ))}
                 </div>

@@ -66,7 +66,7 @@ export async function insertMemoCard(
 
                 const response = await client.api.ai["generate-text"].$post({
                     json: {
-                        prompt: `${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的值，不要返回任何其他内容。 `,
+                        prompt: `如果${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的值，不要返回任何其他内容。如果找不到一个元素对应，那么返回空字符串。 `,
                     }
                 })
 

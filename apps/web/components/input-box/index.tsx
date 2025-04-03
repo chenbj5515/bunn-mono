@@ -100,10 +100,6 @@ export function InputBox() {
                 original_text: content,
                 context_url: urlRef.current,
                 contextContent,
-                // seriesTitle: contextContent?.seriesTitle,
-                // seriesNum: contextContent?.seriesNum,
-                // episodeTitle: contextContent?.episodeTitle,
-                // episodeNumber: contextContent?.episodeNumber?.replace(/\D/g, ''),
             }])
             if (editableRef.current) {
                 editableRef.current.textContent = '';

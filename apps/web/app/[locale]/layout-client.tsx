@@ -8,6 +8,7 @@ import { Footer } from './footer';
 import { UnloginHeader, LoginedHeader } from './header';
 import { useHtmlBg } from '@/hooks/use-html-bg';
 import { Dock } from 'ui/components/dock';
+import { useDoubleVKeyPress } from '@/hooks/events';
 
 export default function LayoutClient({
     children,
@@ -17,6 +18,9 @@ export default function LayoutClient({
     const pathname = usePathname();
     const setLocalCardList = useSetAtom(localCardListAtom);
     useHtmlBg();
+    useDoubleVKeyPress(() => {
+        console.log("double v key pressed");
+    });
     // const dispatch = useDispatch();
 
     const currentRoute = pathname.split('/').pop() || '';
