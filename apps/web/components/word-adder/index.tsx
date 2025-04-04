@@ -61,7 +61,7 @@ function reducer(state: StateType, action: Action): StateType {
 }
 
 async function getCompletion(prompt: string) {
-    const response = await fetch('/api/openai/completion', {
+    const response = await fetch('/api/ai/generate-text', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

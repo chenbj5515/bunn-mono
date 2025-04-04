@@ -89,6 +89,9 @@ export function LoginedHeader() {
     const t = useTranslations('LoginedHeader')
     const [theme, setTheme] = useState("light")
     useAudioPermission();
+    
+    // 检查路径是否包含series-list
+    const isSeriesList = pathname.includes('series-list');
 
     function handleToggle() {
         if (theme === "dark") {
@@ -100,22 +103,24 @@ export function LoginedHeader() {
     }
 
     return (
-        <header className="top-0 z-[200] fixed flex justify-between items-center backdrop-blur-[3px] backdrop-saturate-[180%] p-[12px] w-full h-[64px] font-mono font-bold">
+        <header className={`top-0 ${isSeriesList ? 'z-[0]' : 'z-[200] backdrop-blur-[3px] backdrop-saturate-[180%]'} fixed flex justify-between items-center p-[12px] w-full h-[64px] font-mono font-bold`}>
             <UserPanel />
-            {/* <nav className="w-[620px]">
-                <ul className="flex justify-between items-center">
-                    <li>
-                        <Link href={`/memo-cards`} className={`text-[15px] font-medium px-4 py-2 rounded-full ${pathname === `/${locale}/memo-cards` ? 'text-[#a9aaab]' : 'hover:text-[#a9aaab]'}`}>{t('memoCards')}</Link>
-                    </li>
-                    <li>
-                        <Link href={`/word-cards`} className={`text-[15px] font-medium px-4 py-2 rounded-full ${pathname === `/${locale}/word-cards` ? 'text-[#a9aaab]' : 'hover:text-[#a9aaab]'}`}>{t('wordCards')}</Link>
-                    </li>
-                    <li className="hidden sm:block">
-                        <Link prefetch href={`/daily-report`} className={`text-[15px] font-medium px-4 py-2 rounded-full ${pathname.startsWith(`/${locale}/daily-report`) ? 'text-[#a9aaab]' : 'hover:text-[#a9aaab]'}`}>{t('dailyReport')}</Link>
-                    </li>
-                </ul>
-            </nav>
-            <label className="hidden md:inline-block relative w-[56px] h-[28px] text-base">
+            {!isSeriesList && (
+                <nav className="w-[620px]">
+                    <ul className="flex justify-between items-center">
+                        <li>
+                            <Link href={`/memo-cards`} className={`text-[15px] font-medium px-4 py-2 rounded-full ${pathname === `/${locale}/memo-cards` ? 'text-[#a9aaab]' : 'hover:text-[#a9aaab]'}`}>{t('memoCards')}</Link>
+                        </li>
+                        <li>
+                            <Link href={`/word-cards`} className={`text-[15px] font-medium px-4 py-2 rounded-full ${pathname === `/${locale}/word-cards` ? 'text-[#a9aaab]' : 'hover:text-[#a9aaab]'}`}>{t('wordCards')}</Link>
+                        </li>
+                        <li className="hidden sm:block">
+                            <Link prefetch href={`/daily-report`} className={`text-[15px] font-medium px-4 py-2 rounded-full ${pathname.startsWith(`/${locale}/daily-report`) ? 'text-[#a9aaab]' : 'hover:text-[#a9aaab]'}`}>{t('dailyReport')}</Link>
+                        </li>
+                    </ul>
+                </nav>
+            )}
+            <label className={`${isSeriesList ? 'hidden' : 'hidden md:inline-block'} relative w-[56px] h-[28px] text-base`}>
                 <input
                     onChange={handleToggle}
                     checked={theme === "light"}
@@ -124,7 +129,7 @@ export function LoginedHeader() {
                 />
                 <span className="top-1 left-2 z-[1] absolute shadow-crescent peer-checked:shadow-full-moon rounded-full w-5 h-5 transition peer-checked:translate-x-5 duration-300 ease-in-out"></span>
                 <span className="top-0 right-0 bottom-0 left-0 absolute bg-black peer-checked:bg-blue rounded-3xl transition duration-500 cursor-pointer"></span>
-            </label> */}
+            </label>
         </header>
     )
 }
