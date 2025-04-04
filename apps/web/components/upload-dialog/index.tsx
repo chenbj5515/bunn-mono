@@ -8,7 +8,8 @@ export const UploadDialog: FC<{
     onUpload: (file: File) => void;
     title: string;
     callback?: (file: File, imageData: string) => void;
-}> = ({ isOpen, onClose, onUpload, title, callback }) => {
+    isReplacing?: boolean;
+}> = ({ isOpen, onClose, onUpload, title, callback, isReplacing = false }) => {
     const t = useTranslations('uploadDialog')
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -82,10 +83,12 @@ export const UploadDialog: FC<{
             >
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="font-semibold text-gray-800 text-xl">{t('title')}</h2>
-                        <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
+                        <h2 className="font-semibold text-gray-800 text-xl">
+                            {isReplacing ? t('replaceTitle') : t('title')}
+                        </h2>
+                        {/* <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
                             <span className="text-2xl">&times;</span>
-                        </button>
+                        </button> */}
                     </div>
 
                     {previewUrl ? (

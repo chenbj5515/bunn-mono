@@ -1,7 +1,7 @@
 import { FC } from 'react'
 import SeriesListClient from './series-list-client'
 import { db } from "@db/index"
-import { memoCard, series } from "@db/schema"
+import { memoCard, series, userSeriesCovers } from "@db/schema"
 import { and, eq } from "drizzle-orm"
 import { getSession } from '@server/lib/auth'
 
@@ -50,10 +50,25 @@ const SeriesListPage = async ({ params }: SeriesListPageProps) => {
       )
       .groupBy(series.id) // 确保结果去重
 
-    // 2. 将结果转换为所需的 Poster 格式
+    // 2. 获取用户自定义封面数据
+    const userCovers = await db
+      .select({
+        seriesId: userSeriesCovers.seriesId,
+        customCoverUrl: userSeriesCovers.customCoverUrl,
+      })
+      .from(userSeriesCovers)
+      .where(eq(userSeriesCovers.userId, session.user.id))
+
+    // 创建一个映射以便于查找
+    const userCoversMap = new Map()
+    userCovers.forEach(cover => {
+      userCoversMap.set(cover.seriesId, cover.customCoverUrl)
+    })
+
+    // 3. 将结果转换为所需的 Poster 格式，优先使用自定义封面
     seriesList = seriesData.map((item: { id: string; title: string; coverUrl: string }) => ({
       id: item.id,
-      src: item.coverUrl,
+      src: userCoversMap.has(item.id) ? userCoversMap.get(item.id) : item.coverUrl,
       title: item.title,
     }))
 
@@ -63,7 +78,7 @@ const SeriesListPage = async ({ params }: SeriesListPageProps) => {
     seriesList = []
   }
 
-  // 3. 将数据传递给客户端组件
+  // 4. 将数据传递给客户端组件
   return <SeriesListClient posterImages={seriesList} />
 }
 

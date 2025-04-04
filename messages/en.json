@@ -514,6 +514,7 @@
   },
   "uploadDialog": {
     "title": "Set Poster",
+    "replaceTitle": "Replace Poster",
     "cancel": "Cancel",
     "applyChanges": "Apply Changes"
   }

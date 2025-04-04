@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import type { Poster } from './page'; // 从 page.tsx 导入 Poster 类型
 import { UploadDialog } from '@/components/upload-dialog';
+import { uploadSeriesCover, deleteSeriesCover } from '@/components/upload-dialog/server-functions';
 
 // 定义卡片位置类型
 interface CardPosition {
@@ -22,7 +23,12 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
   const [currentPosterId, setCurrentPosterId] = useState<string | null>(null);
   // 添加本地状态保存海报图片
   const [localPosterImages, setLocalPosterImages] = useState<Poster[]>(posterImages);
+  // 添加悬停状态
+  const [hoveredPosterId, setHoveredPosterId] = useState<string | null>(null);
+  // 添加是否为更换操作的状态
+  const [isReplacing, setIsReplacing] = useState(false);
   
+  console.log(localPosterImages, "localPosterImages=====")
   // 前10个基础卡片位置和旋转角度配置
   const baseCardPositions: CardPosition[] = [
     { left: '10%', top: '20%', rotate: '12deg', zIndex: 9 }, // 7
@@ -63,9 +69,25 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
   }
 
   // 处理上传
-  const handleUpload = (posterId: string, file: File) => {
+  const handleUpload = async (posterId: string, file: File) => {
     console.log(`上传图片到海报ID ${posterId}:`, file);
-    // 这里实现上传逻辑，可能需要调用API保存图片
+    
+    // 如果是更换操作，先删除旧资源
+    if (isReplacing) {
+      const poster = localPosterImages.find(p => p.id === posterId);
+      if (poster && poster.src && !poster.src.startsWith('blob:')) {
+        try {
+          // 删除服务器上的旧文件
+          await deleteSeriesCover(posterId);
+          console.log(`已删除海报ID ${posterId} 的旧封面`);
+        } catch (error) {
+          console.error('删除旧封面失败:', error);
+        }
+      }
+    }
+    
+    // 上传新文件
+    uploadSeriesCover(posterId, file);
   };
 
   // 新增回调函数，用于更新海报图片
@@ -82,6 +104,16 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
       // 这里可以添加实际的图片上传到服务器的逻辑
       console.log(`更新了海报ID ${currentPosterId} 的图片:`, { file, imageData });
     }
+  };
+
+  // 打开上传对话框
+  const openUploadDialog = (posterId: string) => {
+    const poster = localPosterImages.find(p => p.id === posterId);
+    const hasImage = poster && poster.src;
+    
+    setCurrentPosterId(posterId);
+    setIsReplacing(!!hasImage); // 如果已有图片，则为更换操作
+    setUploadDialogOpen(true);
   };
 
   // 计算容器高度
@@ -102,6 +134,7 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
             const posterIndex = index % localPosterImages.length; // 使用本地状态
             const poster = hasImage ? localPosterImages[posterIndex] : null; // 使用本地状态
             const hasCover = poster && poster.src; // 检查是否有封面图片
+            const isHovered = poster && hoveredPosterId === poster.id; // 检查是否悬停
 
             console.log(poster, "poster=====")
             return (
@@ -117,69 +150,97 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
                   pointerEvents: hasImage && poster ? 'auto' : 'none',
                 }}
               >
-                <motion.div
-                  className="shadow-poster rounded-lg w-[180px] h-[250px] overflow-hidden cursor-pointer"
-                  whileHover={{
-                    scale: 1.1,
-                    zIndex: 20,
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 20,
-                  }}
+                {/* 创建一个包裹更换图标和海报的交互区域 */}
+                <div 
+                  className="relative"
                   style={{
-                    zIndex: 'inherit',
+                    paddingTop: '68px', // 为更换图标预留空间
                   }}
+                  onMouseEnter={() => poster && setHoveredPosterId(poster.id)}
+                  onMouseLeave={() => setHoveredPosterId(null)}
                 >
-                  {hasImage && poster && (
-                    <div className="relative w-full h-full">
-                      {hasCover ? (
-                        // 有封面图片的情况
-                        <>
-                          {poster.src.startsWith('blob:') ? (
-                            // 对于Blob URL，使用普通的img标签
-                            <img
-                              src={poster.src}
-                              alt={poster.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            // 对于标准路径，继续使用Next.js的Image组件
-                            <Image
-                              src={poster.src.startsWith('/') ? poster.src : `/series/${poster.src}`}
-                              alt={poster.title}
-                              fill
-                              className="object-cover"
-                              priority={index < 10}
-                            />
-                          )}
-                          <div className="absolute inset-0 shadow-neumorphic"></div>
-                        </>
-                      ) : (
-                        // 没有封面图片的情况
-                        <div 
-                          className="flex flex-col justify-between items-center bg-gray-100 p-4 w-full h-full"
-                          onClick={() => {
-                            setCurrentPosterId(poster.id);
-                            setUploadDialogOpen(true);
-                          }}
-                        >
-                          <div className="flex flex-col justify-center items-center mt-6">
-                            <div className="bg-[rgb(244,244,245)] shadow-neumorphic hover:shadow-neumorphic-button-hover mb-2 p-2 rounded-full">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                            </div>
-                            {/* <span className="font-medium text-black text-sm">上传海报</span> */}
-                          </div>
-                          
-                          <p className="mb-4 font-medium text-black text-base text-center">{poster.title}</p>
-                        </div>
-                      )}
+                  {/* 更换封面图标 - 位于海报上方外部 */}
+                  {hasImage && poster && hasCover && (
+                    <div 
+                      className={`absolute top-0 left-[50%] z-[30] transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+                      style={{ 
+                        transform: `translate(-50%, 0) rotate(-${position.rotate})` // 居中并抵消海报的旋转
+                      }}
+                    >
+                      <div 
+                        className="bg-white hover:bg-gray-100 shadow-md p-2 rounded-full cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation(); // 防止事件冒泡
+                          openUploadDialog(poster.id);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      </div>
                     </div>
                   )}
-                </motion.div>
+
+                  <motion.div
+                    className="shadow-poster rounded-lg w-[180px] h-[250px] overflow-hidden cursor-pointer"
+                    whileHover={{
+                      scale: 1.1,
+                      zIndex: 20,
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 20,
+                    }}
+                    style={{
+                      zIndex: 'inherit',
+                    }}
+                  >
+                    {hasImage && poster && (
+                      <div className="relative w-full h-full">
+                        {hasCover ? (
+                          // 有封面图片的情况
+                          <>
+                            {poster.src.startsWith('blob:') ? (
+                              // 对于Blob URL，使用普通的img标签
+                              <img
+                                src={poster.src}
+                                alt={poster.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              // 对于标准路径，继续使用Next.js的Image组件
+                              <Image
+                                src={poster.src.startsWith('https') ? poster.src : `/series/${poster.src}`}
+                                alt={poster.title}
+                                fill
+                                className="object-cover"
+                                priority={index < 10}
+                              />
+                            )}
+                            <div className="absolute inset-0 shadow-neumorphic"></div>
+                          </>
+                        ) : (
+                          // 没有封面图片的情况
+                          <div 
+                            className="flex flex-col justify-between items-center bg-gray-100 p-4 w-full h-full"
+                            onClick={() => openUploadDialog(poster.id)}
+                          >
+                            <div className="flex flex-col justify-center items-center mt-6">
+                              <div className="bg-[rgb(244,244,245)] shadow-neumorphic hover:shadow-neumorphic-button-hover mb-2 p-2 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                              </div>
+                            </div>
+                            
+                            <p className="mb-4 font-medium text-black text-base text-center">{poster.title}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                </div>
               </div>
             );
           })}
@@ -194,6 +255,7 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
           onUpload={(file) => handleUpload(currentPosterId, file)}
           title={localPosterImages.find(p => p.id === currentPosterId)?.title || ''}
           callback={handleImageUpdate}
+          isReplacing={isReplacing}
         />
       )}
     </div>

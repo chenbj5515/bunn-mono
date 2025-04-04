@@ -514,6 +514,7 @@
     },
     "uploadDialog": {
         "title": "設定海報",
+        "replaceTitle": "更換海報",
         "cancel": "取消",
         "applyChanges": "套用變更"
     }

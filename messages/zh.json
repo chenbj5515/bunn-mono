@@ -513,6 +513,7 @@
     },
     "uploadDialog": {
         "title": "设置海报",
+        "replaceTitle": "更换海报",
         "cancel": "取消",
         "applyChanges": "应用更改"
     }
