@@ -1,25 +1,49 @@
-import { ContentfulStatusCode } from 'hono/utils/http-status'
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@server/db';
 import { userActionLogs } from '@server/db/schema';
-import { Context } from 'hono';
 import { trackTokenCount } from '@server/redis/token-tracker';
 import { ERROR_CODES, handleApiError } from '@server/middlewares/auth-token-limit';
+import { getUserSubscription } from '@server/server-functions/get-subscription';
+import { getUserTokenLimit, checkTokenLimit } from '@server/redis/token-tracker';
+import { after } from "next/server";
 
-export const extractSubtitles = async (c: Context) => {
+export async function POST(req: NextRequest) {
     try {
-        // 获取中间件设置的用户信息
-        const user = c.get('user');
+        // 认证和token限制检查
+        const { session, subscription } = await getUserSubscription();
         
+        if (!session?.user) {
+            return NextResponse.json({
+                success: false,
+                error: '未授权',
+                errorCode: ERROR_CODES.UNAUTHORIZED
+            }, { status: 401 });
+        }
+
+        const user = session.user;
+        
+        // 获取用户token限额并检查
+        const limit = await getUserTokenLimit(user.id);
+        const isWithinLimit = await checkTokenLimit(user.id, limit);
+        
+        if (!isWithinLimit) {
+            return NextResponse.json({
+                success: false,
+                error: '您已达到本月token使用限制，请联系管理员或等待下月重置',
+                errorCode: ERROR_CODES.TOKEN_LIMIT_EXCEEDED
+            }, { status: 403 });
+        }
+
         // 处理 FormData 格式的请求
-        const formData = await c.req.formData();
+        const formData = await req.formData();
         const imageFile = formData.get('image') as File;
 
         if (!imageFile) {
-            return c.json({
+            return NextResponse.json({
                 success: false,
                 error: '未找到图片文件',
                 errorCode: ERROR_CODES.MISSING_IMAGE
-            }, 400 as ContentfulStatusCode);
+            }, { status: 400 });
         }
 
         const arrayBuffer = await imageFile.arrayBuffer();
@@ -71,7 +95,7 @@ export const extractSubtitles = async (c: Context) => {
             console.log(`实际使用tokens(4o-mini): 输入=${promptTokens}, 输出=${completionTokens}`);
 
             // 异步处理记录操作，不阻塞响应
-            const recordOperation = async () => {
+            after(async () => {
                 try {
                     await Promise.all([
                         trackTokenCount({
@@ -90,31 +114,28 @@ export const extractSubtitles = async (c: Context) => {
                 } catch (error) {
                     console.error('记录操作失败:', error);
                 }
-            };
+            });
 
-            // 根据环境选择合适的执行方式
-            recordOperation().catch(err => console.error('后台操作错误:', err));
-
-            return c.json({
+            return NextResponse.json({
                 success: true,
                 subtitles
             });
         } catch (err) {
             console.error('调用4o-mini模型失败:', err);
-            return c.json({
+            return NextResponse.json({
                 success: false,
                 error: err instanceof Error ? err.message : '调用AI模型失败',
                 errorCode: ERROR_CODES.API_ERROR
-            }, 500 as ContentfulStatusCode);
+            }, { status: 500 });
         }
     } catch (err: unknown) {
         const { statusCode, errorCode, errorMessage, stack } = handleApiError(err);
         
-        return c.json({
+        return NextResponse.json({
             success: false,
             error: errorMessage,
             errorCode: errorCode,
             stack
-        }, statusCode as ContentfulStatusCode);
+        }, { status: statusCode });
     }
-}
+} 

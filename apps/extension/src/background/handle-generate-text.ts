@@ -1,14 +1,16 @@
-import { client } from "@server/lib/api-client";
-
 export async function handleGenerateText(message: { type: string, payload: { prompt: string, model: string } }, sender: chrome.runtime.MessageSender, sendResponse: (response: any) => void) {
     try {
         // 使用Hono客户端发起请求到自定义API
         // 直接传递json参数，而不是requestOptions对象
-        const response = await client.api.ai["generate-text"].$post({
-            json: {
+        const response = await fetch(`${process.env.API_BASE_URL}/api/ai/generate-text`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
                 prompt: message.payload.prompt,
                 model: message.payload.model
-            }
+            })
         });
 
         // 从ClientResponse对象中提取JSON数据

@@ -1,5 +1,4 @@
 import { showNotification } from '@/common/notify';
-import { client } from "@server/lib/api-client"
 
 // 全局变量
 export let lastSubtitle = { text: '', startTime: 0 };
@@ -91,9 +90,6 @@ export function checkSubtitle() {
 //     formData.append('image', file);
 
 //     // 调用 Google Vision API，设置正确的 Content-Type
-//     const response = await client.api.ai['extract-subtitles'].$post({
-//       form: formData
-//     });
 
 //     // 获取响应数据
 //     const responseData = await response.json();

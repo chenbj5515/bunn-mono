@@ -10,7 +10,8 @@ const config = {
     '../../packages/ui/src/components/**/*.{ts,tsx}',
     '../../apps/extension/src/popup/**/*.{ts,tsx}',
     '../../apps/extension/src/components/**/*.{ts,tsx}',
-    '../../apps/web/**/*.{ts,tsx}',
+    '../../apps/web/app/**/*.{ts,tsx}',
+    '../../apps/web/components/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {

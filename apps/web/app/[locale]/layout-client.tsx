@@ -10,7 +10,7 @@ import { useHtmlBg } from '@/hooks/use-html-bg';
 import { Dock } from '@/components/dock/dock';
 import { useDoubleVKeyPress } from '@/hooks/events';
 import { insertMemoCard } from '@/components/memo-card/server-functions';
-import { client } from '@server/lib/api-client';
+// import { client } from '@server/lib/api-client';
 
 export default function LayoutClient({
     children,
@@ -36,6 +36,7 @@ export default function LayoutClient({
                     state: 'idle',
                     localCardList: []
                 });
+                window.location.reload();
             }, 2000);
         }
     }
@@ -82,16 +83,25 @@ export default function LayoutClient({
             });
             if (!pathname.includes('memo-cards')) {
                 try {
+                    console.log(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, "API_BASE_URL========");
                     const [translationResultResponse, kanaResultResponse] = await Promise.all([
-                        client.api.ai["generate-text"].$post({
-                            json: {
+                        fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
                                 prompt: `${original_text}，给出这句话的中文翻译，注意一定要中文，不要返回翻译结果以外的任何内容。`
-                            }
+                            })
                         }),
-                        client.api.ai["generate-text"].$post({
-                            json: {
+                        fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
                                 prompt: `${original_text}，给出这句话的平假名读音，注意只需要平假名读音和对应位置的标点符号。`
-                            }
+                            })
                         })
                     ]);
 

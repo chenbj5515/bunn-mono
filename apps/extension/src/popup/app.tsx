@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next"
 // // import { Button } from "ui/components/button"
 import { LanguageSelector } from "@/components/language-selector"
 import Loading from "ui/components/loading"
-import { client } from "@server/lib/api-client"
 import { UserMenu } from "./user-menu"
 import MissingKey from "./missing-key"
 import SignIn from "./sign-in"
@@ -57,17 +56,19 @@ export default function SettingsPage() {
 
   // 使用client调用新的/users/session接口
   useEffect(() => {
-    client.api.user.session.$get()
+    fetch(`${process.env.API_BASE_URL}/api/user/session`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
       .then(async (response) => {
-        // 从Hono客户端响应中获取JSON数据
         const responseData = await response.json();
 
-        // 类型守卫：检查是否有success和data属性
         if (responseData.success && 'data' in responseData) {
           const data = responseData.data;
           const { session, subscription } = data;
 
-          // 合并session和subscription数据到用户对象
           const userData: User = {
             id: session.user.id,
             name: session.user.name,
