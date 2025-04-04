@@ -52,19 +52,19 @@ export async function insertMemoCard(
             if (existingSeries.length === 0) {
 
                 const seriesList = [
-                    'attack-on-titan.jpg',
-                    'cyberpunk.png',
-                    'dragon-ball.webp',
-                    'eva.avif',
-                    'flower.jpeg',
-                    'hunter-x-hunter.webp',
-                    'jujutsu-kaisen.webp',
-                    'konann.jpg',
-                    'one-punch-man.webp',
-                    'seven-deadly-sins.webp',
-                    'summer-time-rerendering.webp',
-                    'weather-child.png',
-                    'your-name.jpeg'
+                    'Attack on Titan.jpg',
+                    'Cyberpunk: Edgerunners.png',
+                    'Dragon Ball.webp',
+                    'Neon Genesis Evangelion.avif',
+                    'Hunter x Hunter.webp',
+                    'Jujutsu Kaisen.webp',
+                    'Detective Conan.jpg',
+                    'One Punch Man.webp',
+                    'The Seven Deadly Sins.webp',
+                    'Summer Time Rendering.webp',
+                    'Weathering with You.png',
+                    'Anohana: The Flower We Saw That Day.jpeg',
+                    'Your Name.jpeg'
                 ];
 
                 const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
@@ -74,7 +74,7 @@ export async function insertMemoCard(
                         'Cookie': headersList.get('cookie') || ''
                     },
                     body: JSON.stringify({
-                        prompt: `如果${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的索引，不要返回任何其他内容。如果找不到一个元素对应，那么返回-1。`
+                        prompt: `如果${seriesList}」这个列表里有一个元素是${seriesTitle}这个剧集的英文译名，返回这个元素的索引。如果任何元素都不是对应的英文译名，那么返回-1。不要返回任何索引以外的内容。`
                     })
                 });
 

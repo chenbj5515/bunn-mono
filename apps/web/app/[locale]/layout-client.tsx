@@ -25,7 +25,6 @@ export default function LayoutClient({
     async function handleAllDone(original_text: string, translation: string, kana: string, context_url: string, contextContent: any) {
         const record = await insertMemoCard(original_text, translation, kana, context_url, contextContent);
         
-        console.log(record, "record========");
         if (record) {
             setLocalCard({
                 state: 'added',

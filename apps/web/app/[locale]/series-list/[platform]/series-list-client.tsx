@@ -28,14 +28,13 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
   // 添加是否为更换操作的状态
   const [isReplacing, setIsReplacing] = useState(false);
   
-  console.log(localPosterImages, "localPosterImages=====")
   // 前10个基础卡片位置和旋转角度配置
   const baseCardPositions: CardPosition[] = [
     { left: '10%', top: '20%', rotate: '12deg', zIndex: 9 }, // 7
     { left: '30%', top: '24%', rotate: '8deg', zIndex: 13 }, // 3
-    { left: '52%', top: '20%', rotate: '3deg', zIndex: 11 }, // 5
-    { left: '75%', top: '22%', rotate: '-7deg', zIndex: 12 }, // 4
-    { left: '95%', top: '16%', rotate: '5deg', zIndex: 8 }, // 8
+    { left: '50%', top: '20%', rotate: '3deg', zIndex: 11 }, // 5
+    { left: '70%', top: '22%', rotate: '-7deg', zIndex: 12 }, // 4
+    { left: '90%', top: '16%', rotate: '5deg', zIndex: 8 }, // 8
     { left: '10%', top: '65%', rotate: '-10deg', zIndex: 7 }, // 9
     { left: '30%', top: '68%', rotate: '-15deg', zIndex: 10 }, // 6
     { left: '50%', top: '60%', rotate: '5deg', zIndex: 15 }, // 1
@@ -126,7 +125,7 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
   const containerHeight = `calc(${maxTopPercentage}vh + 280px)`; // 280px 约为海报高度
 
   return (
-    <div className="mx-auto w-full">
+    <div className="mx-auto w-full font-mono">
       <div className="relative overflow-visible" style={{ height: containerHeight }}>
         <div className="relative w-full h-[100vh] overflow-visible">
           {positions.map((position, index) => {
@@ -136,7 +135,6 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
             const hasCover = poster && poster.src; // 检查是否有封面图片
             const isHovered = poster && hoveredPosterId === poster.id; // 检查是否悬停
 
-            console.log(poster, "poster=====")
             return (
               <div
                 key={index}
@@ -162,10 +160,7 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
                   {/* 更换封面图标 - 位于海报上方外部 */}
                   {hasImage && poster && hasCover && (
                     <div 
-                      className={`absolute top-0 left-[50%] z-[30] transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
-                      style={{ 
-                        transform: `translate(-50%, 0) rotate(-${position.rotate})` // 居中并抵消海报的旋转
-                      }}
+                      className={`absolute top-0 left-1/2 -translate-x-1/2 z-[30] transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
                     >
                       <div 
                         className="bg-white hover:bg-gray-100 shadow-md p-2 rounded-full cursor-pointer"
