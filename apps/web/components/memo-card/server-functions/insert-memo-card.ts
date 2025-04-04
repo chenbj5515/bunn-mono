@@ -74,16 +74,16 @@ export async function insertMemoCard(
                         'Cookie': headersList.get('cookie') || ''
                     },
                     body: JSON.stringify({
-                        prompt: `如果${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的值，不要返回任何其他内容。如果找不到一个元素对应，那么返回空字符串。 `
+                        prompt: `如果${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的索引，不要返回任何其他内容。如果找不到一个元素对应，那么返回-1。`
                     })
                 });
 
                 const result = await response.json();
-                const seriesCover = result.success ? result.data : "";
+                const seriesCoverIndex = result.success ? result.data : "";
 
                 const [newSeries] = await db.insert(series).values({
                     platform: "netflix",
-                    coverUrl: seriesCover,
+                    coverUrl: seriesList[seriesCoverIndex] ?? "",
                     title: seriesTitle
                 }).returning();
 

@@ -510,5 +510,10 @@
         "signInWithGithub": "使用 GitHub 登录",
         "signInWithGoogle": "使用 Google 登录",
         "or": "或者"
+    },
+    "uploadDialog": {
+        "title": "设置海报",
+        "cancel": "取消",
+        "applyChanges": "应用更改"
     }
 }

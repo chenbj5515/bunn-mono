@@ -511,5 +511,10 @@
     "signInWithGithub": "Sign in with GitHub",
     "signInWithGoogle": "Sign in with Google",
     "or": "Or"
+  },
+  "uploadDialog": {
+    "title": "Set Poster",
+    "cancel": "Cancel",
+    "applyChanges": "Apply Changes"
   }
 }

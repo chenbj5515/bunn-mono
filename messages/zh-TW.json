@@ -511,5 +511,10 @@
         "signInWithGithub": "使用 GitHub 登入",
         "signInWithGoogle": "使用 Google 登入",
         "or": "或是"
+    },
+    "uploadDialog": {
+        "title": "設定海報",
+        "cancel": "取消",
+        "applyChanges": "套用變更"
     }
 }
