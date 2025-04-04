@@ -5,6 +5,7 @@ import { memoCard, userActionLogs, series, seriesMetadata } from "@db/schema";
 import { sql, eq, and } from "drizzle-orm";
 import { ContextContent } from '@/components/input-box';
 import { client } from "@server/lib/api-client";
+import { headers } from "next/headers";
 
 // 从Netflix URL中提取watchID
 function extractNetflixWatchID(url: string): string | null {
@@ -21,6 +22,9 @@ export async function insertMemoCard(
     contextContent: ContextContent | null
 ) {
     const session = await getSession();
+    const headersList = await headers();
+
+    // console.log(headersList, "insertMemoCard session================")
     if (!session?.user.id) {
         return null;
     }
@@ -64,11 +68,24 @@ export async function insertMemoCard(
                     'your-name.jpeg'
                 ];
 
+                console.log(headersList.get('cookie'), "insertMemoCard cookie================")
+
                 const response = await client.api.ai["generate-text"].$post({
                     json: {
                         prompt: `如果${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的值，不要返回任何其他内容。如果找不到一个元素对应，那么返回空字符串。 `,
-                    }
+                    },
+                    headers: {
+                        'Cookie': headersList.get('cookie') || '', // 仅传递 Cookie
+                    },
                 })
+
+                // const response = await fetch('/api/ai/generate-text', {
+                //     method: 'POST',
+                //     headers: headersList,
+                //     body: JSON.stringify({
+                //         prompt: `如果${seriesList}」这个列表里有一个元素对应${seriesTitle}这个剧集，返回这个元素的值，不要返回任何其他内容。如果找不到一个元素对应，那么返回空字符串。 `
+                //     })
+                // });
 
                 const result = await response.json();
                 const seriesCover = result.success ? result.data : "";

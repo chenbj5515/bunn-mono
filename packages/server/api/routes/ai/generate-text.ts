@@ -9,6 +9,8 @@ export const generateText = async (c: Context) => {
     try {
         // 获取中间件设置的用户信息
         const user = c.get('user');
+        const cookie = c.req.header('cookie');
+        console.log(cookie, "authTokenLimitMiddleware cookie================")
         
         // 获取请求参数
         const body = await c.req.json();

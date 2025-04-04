@@ -180,8 +180,6 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
 
   const containerHeight = `calc(${maxTopPercentage}vh + 280px)`; // 280px 约为海报高度
 
-  console.log(positions, "positions=====")
-
   return (
     <div className="mx-auto w-full">
       <div className="relative overflow-visible" style={{ height: containerHeight }}>

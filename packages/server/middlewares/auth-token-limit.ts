@@ -27,6 +27,16 @@ export const ERROR_CODES = {
 
 // 验证用户并检查token限制的中间件
 export const authTokenLimitMiddleware = async (c: Context, next: Next) => {
+    // 检查请求头中的cookie
+    const cookie = c.req.header('cookie');
+    console.log(cookie, "authTokenLimitMiddleware cookie================")
+    if (!cookie) {
+        return c.json({
+            success: false,
+            error: '缺少认证信息',
+            errorCode: ERROR_CODES.UNAUTHORIZED
+        }, 401 as ContentfulStatusCode);
+    }
     try {
         // 获取用户会话
         const { session, subscription: { active, expireAt } } = await getUserSubscription();

@@ -145,7 +145,7 @@ export function AppIcon({ name, icon, isHovered, onHover, onLeave, onClick, tool
                 >
                     <div className="relative bg-white shadow-md px-6 py-3 rounded-[12px] w-[160px] text-[14px] text-black">
                         {tooltip}
-                        {/* <div className="top-1/2 left-[-6px] z-20 absolute bg-white w-5 h-5 rotate-45 -translate-y-1/2 transform"></div> */}
+                        <div className="top-1/2 left-[-7px] z-20 absolute bg-white shadow-[-2px_2px_3px_-1px_rgba(0,0,0,0.05)] w-5 h-5 rotate-45 -translate-y-1/2 transform"></div>
                     </div>
                 </motion.div>
             )}
