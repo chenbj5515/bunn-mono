@@ -4,6 +4,7 @@ import { db } from "@db/index"
 import { memoCard, series, userSeriesCovers } from "@db/schema"
 import { and, eq } from "drizzle-orm"
 import { getSession } from '@server/lib/auth'
+import { Poster } from '@/components/poster-card'
 
 // 在这里添加导出接口关键字，以便客户端组件可以导入
 export interface SeriesListPageProps {
@@ -13,12 +14,8 @@ export interface SeriesListPageProps {
   }
 }
 
-// 定义海报类型并导出
-export interface Poster {
-  id: string
-  src: string
-  title: string
-}
+// 不再需要在这里定义Poster类型
+// 使用从 @/components/poster-card 导入的 Poster 类型
 
 // 服务器组件现在是 async 函数
 const SeriesListPage = async ({ params }: SeriesListPageProps) => {

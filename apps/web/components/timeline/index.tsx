@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { MemoCard } from "@/components/memo-card"
 import { Clock } from 'lucide-react'
 import { cn } from "ui/lib/utils"
@@ -26,6 +26,180 @@ interface TimelineProps {
     alwaysShowTimestamp?: boolean // 控制时间戳是否永远显示
 }
 
+// 定义 ResizableImage 组件的属性类型
+interface ResizableImageProps {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+    className?: string;
+    showShadow?: boolean; // 添加控制是否显示阴影的参数
+}
+
+// 可调整大小和位置的图片组件
+const ResizableImage = ({ src, alt, width, height, className = '', showShadow = true }: ResizableImageProps) => {
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [size, setSize] = useState({ width: width || 300, height: height || 450 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
+    const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+    const [startSize, setStartSize] = useState({ width: 0, height: 0 });
+    const [resizeDirection, setResizeDirection] = useState<string | null>(null);
+    const imageRef = useRef<HTMLDivElement>(null);
+
+    // 开始拖动
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if ((e.target as HTMLElement).className.includes('resize-handle')) return;
+        
+        e.preventDefault(); // 防止默认的拖拽行为
+        setIsDragging(true);
+        setStartPos({
+            x: e.clientX - position.x,
+            y: e.clientY - position.y
+        });
+    };
+
+    // 开始调整大小
+    const handleResizeStart = (e: React.MouseEvent, direction: string) => {
+        e.stopPropagation();
+        setIsResizing(true);
+        setResizeDirection(direction);
+        setStartPos({
+            x: e.clientX,
+            y: e.clientY
+        });
+        setStartSize({
+            width: size.width,
+            height: size.height
+        });
+    };
+
+    // 处理鼠标移动
+    const handleMouseMove = (e: MouseEvent) => {
+        if (isDragging) {
+            setPosition({
+                x: e.clientX - startPos.x,
+                y: e.clientY - startPos.y
+            });
+        } else if (isResizing && resizeDirection) {
+            const aspectRatio = startSize.width / startSize.height;
+            let deltaWidth = 0;
+            let deltaHeight = 0;
+            let newWidth = startSize.width;
+            let newHeight = startSize.height;
+            let newX = position.x;
+            let newY = position.y;
+
+            // 根据不同调整方向计算新的尺寸和位置
+            switch (resizeDirection) {
+                case 'bottom-right':
+                    deltaWidth = e.clientX - startPos.x;
+                    newWidth = Math.max(100, startSize.width + deltaWidth);
+                    newHeight = newWidth / aspectRatio;
+                    break;
+                case 'bottom-left':
+                    deltaWidth = startPos.x - e.clientX;
+                    newWidth = Math.max(100, startSize.width + deltaWidth);
+                    newHeight = newWidth / aspectRatio;
+                    newX = position.x - (newWidth - startSize.width);
+                    break;
+                case 'top-right':
+                    deltaWidth = e.clientX - startPos.x;
+                    newWidth = Math.max(100, startSize.width + deltaWidth);
+                    newHeight = newWidth / aspectRatio;
+                    newY = position.y - (newHeight - startSize.height);
+                    break;
+                case 'top-left':
+                    deltaWidth = startPos.x - e.clientX;
+                    newWidth = Math.max(100, startSize.width + deltaWidth);
+                    newHeight = newWidth / aspectRatio;
+                    newX = position.x - (newWidth - startSize.width);
+                    newY = position.y - (newHeight - startSize.height);
+                    break;
+            }
+            
+            setSize({
+                width: newWidth,
+                height: newHeight
+            });
+            setPosition({
+                x: newX,
+                y: newY
+            });
+        }
+    };
+
+    // 结束拖动或调整大小
+    const handleMouseUp = () => {
+        setIsDragging(false);
+        setIsResizing(false);
+        setResizeDirection(null);
+    };
+
+    // 添加和移除全局鼠标事件监听器
+    useEffect(() => {
+        if (isDragging || isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        } else {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging, isResizing, resizeDirection]);
+
+    return (
+        <div 
+            ref={imageRef}
+            className={`relative rounded-[20px] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className}`}
+            style={{
+                transform: `translate(${position.x}px, ${position.y}px)`,
+                width: `${size.width}px`,
+                height: `${size.height}px`,
+                background: 'transparent'
+            }}
+            onMouseDown={handleMouseDown}
+            onDragStart={(e) => e.preventDefault()} // 阻止默认的拖拽行为
+        >
+            <div className={`bg-transparent rounded-[20px] w-full h-full overflow-hidden ${showShadow ? 'shadow-md' : ''}`}>
+                <Image 
+                    src={src} 
+                    alt={alt} 
+                    fill
+                    className="rounded-[20px] object-cover"
+                    quality={90}
+                    draggable="false" // 禁用图片的默认拖拽
+                    style={{ borderRadius: '20px' }}
+                />
+            </div>
+            {/* 右下角调整手柄 */}
+            <div 
+                className="right-0 bottom-0 absolute w-8 h-8 resize-handle cursor-se-resize"
+                onMouseDown={(e) => handleResizeStart(e, 'bottom-right')}
+            />
+            {/* 左下角调整手柄 */}
+            <div 
+                className="bottom-0 left-0 absolute w-8 h-8 resize-handle cursor-sw-resize"
+                onMouseDown={(e) => handleResizeStart(e, 'bottom-left')}
+            />
+            {/* 右上角调整手柄 */}
+            <div 
+                className="top-0 right-0 absolute w-8 h-8 resize-handle cursor-ne-resize"
+                onMouseDown={(e) => handleResizeStart(e, 'top-right')}
+            />
+            {/* 左上角调整手柄 */}
+            <div 
+                className="top-0 left-0 absolute w-8 h-8 resize-handle cursor-nw-resize"
+                onMouseDown={(e) => handleResizeStart(e, 'top-left')}
+            />
+        </div>
+    );
+};
+
 export default function Timeline({ memoCards, alwaysShowTimestamp = false }: TimelineProps) {
     const [hoveredNode, setHoveredNode] = useState<number | null>(null)
     
@@ -37,20 +211,27 @@ export default function Timeline({ memoCards, alwaysShowTimestamp = false }: Tim
     return (
         <div className="relative min-h-screen font-mono">
             {/* 左侧固定封面图片和标题 */}
-            <div className="hidden top-1/2 left-0 z-10 fixed md:flex flex-col items-center p-6 w-1/4 -translate-y-1/2">
-                {coverUrl && (
-                    <div className="relative mb-4 w-full h-80">
-                        <Image 
-                            src={`/series/${coverUrl}`} 
-                            alt={seriesTitle || "封面图片"} 
-                            fill
-                            className="object-contain"
-                        />
-                    </div>
-                )}
-                <h3 className="mt-2 font-semibold text-xl text-center">
+            <div className="hidden top-1/2 left-0 z-10 fixed md:flex flex-col items-start pt-6 pr-6 pb-6 pl-[70px] w-1/4 -translate-y-1/2">
+                {/* <h2 className="mb-6 w-full font-bold text-2xl text-left">
                     {seriesTitle || ""}
-                </h3>
+                </h2> */}
+                <ResizableImage 
+                    src={"/titles/cyberpunk.png"} 
+                    alt="cyberpunk" 
+                    width={400} 
+                    height={100}
+                    className="mb-6"
+                    showShadow={false}
+                />
+                {coverUrl && (
+                    <ResizableImage 
+                        src={coverUrl.startsWith('https') ? coverUrl : `/series/${coverUrl}`} 
+                        alt={seriesTitle || "封面图片"} 
+                        width={400}
+                        height={600}
+                        className="shadow-poster"
+                    />
+                )}
             </div>
 
             {/* 中央时间轴部分 - 绝对定位在页面中央 */}
@@ -94,20 +275,19 @@ export default function Timeline({ memoCards, alwaysShowTimestamp = false }: Tim
                             )}
 
                             {/* 移动端封面图片和标题 */}
-                            <div className="md:hidden flex flex-col items-center mb-4">
-                                {card.coverUrl && (
-                                    <div className="relative w-full h-64">
-                                        <Image 
-                                            src={`/series/${card.coverUrl}`} 
-                                            alt={card.seriesTitle || "封面图片"} 
-                                            fill
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                )}
-                                <h3 className="mt-2 font-semibold text-xl text-center">
+                            <div className="md:hidden flex flex-col items-start mb-4 pl-[70px]">
+                                <h2 className="mb-4 w-full font-bold text-2xl text-left">
                                     {card.seriesTitle || ""}
-                                </h3>
+                                </h2>
+                                {card.coverUrl && (
+                                    <ResizableImage 
+                                        src={`/series/${card.coverUrl}`} 
+                                        alt={card.seriesTitle || "封面图片"} 
+                                        width={300}
+                                        height={450}
+                                        className="shadow-poster"
+                                    />
+                                )}
                             </div>
                             
                             {/* 卡片内容 */}
