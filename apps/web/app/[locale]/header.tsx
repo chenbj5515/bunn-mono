@@ -90,8 +90,8 @@ export function LoginedHeader() {
     const [theme, setTheme] = useState("light")
     useAudioPermission();
     
-    // 检查路径是否包含series-list
-    const isSeriesList = pathname.includes('series-list');
+    // 检查路径是否包含series-list或timeline
+    const onNavList = pathname.includes('series-list') || pathname.includes('timeline');
 
     function handleToggle() {
         if (theme === "dark") {
@@ -103,9 +103,9 @@ export function LoginedHeader() {
     }
 
     return (
-        <header className={`top-0 ${isSeriesList ? 'z-[0]' : 'z-[200] backdrop-blur-[3px] backdrop-saturate-[180%]'} fixed flex justify-between items-center p-[12px] w-full h-[64px] font-mono font-bold`}>
+        <header className={`top-0 ${onNavList ? 'z-[0]' : 'z-[200] backdrop-blur-[3px] backdrop-saturate-[180%]'} fixed flex justify-between items-center p-[12px] w-full h-[64px] font-mono font-bold`}>
             <UserPanel />
-            {!isSeriesList && (
+            {!onNavList && (
                 <nav className="w-[620px]">
                     <ul className="flex justify-between items-center">
                         <li>
@@ -120,7 +120,7 @@ export function LoginedHeader() {
                     </ul>
                 </nav>
             )}
-            <label className={`${isSeriesList ? 'hidden' : 'hidden md:inline-block'} relative w-[56px] h-[28px] text-base`}>
+            <label className={`${onNavList ? 'hidden' : 'hidden md:inline-block'} relative w-[56px] h-[28px] text-base`}>
                 <input
                     onChange={handleToggle}
                     checked={theme === "light"}

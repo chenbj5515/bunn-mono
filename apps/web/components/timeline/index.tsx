@@ -8,6 +8,7 @@ import { Card } from "ui/components/card"
 import dayjs from "dayjs"
 import { memoCard } from "@db/schema"
 import type { InferSelectModel } from "drizzle-orm"
+import Image from "next/image"
 
 // 定义 MemoCardWithMetadata 类型，包含从数据库获取的 MemoCard 和额外的元数据
 export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> {
@@ -22,95 +23,110 @@ export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> 
 
 interface TimelineProps {
     memoCards: MemoCardWithMetadata[]
+    alwaysShowTimestamp?: boolean // 控制时间戳是否永远显示
 }
 
-export default function Timeline({ memoCards }: TimelineProps) {
+export default function Timeline({ memoCards, alwaysShowTimestamp = false }: TimelineProps) {
     const [hoveredNode, setHoveredNode] = useState<number | null>(null)
+    
+    // 获取第一个卡片的封面和标题用于固定展示
+    const firstCard = memoCards.length > 0 ? memoCards[0] : null;
+    const coverUrl = firstCard?.coverUrl || "";
+    const seriesTitle = firstCard?.seriesTitle || "";
 
-    console.log(memoCards, "memoCards========")
     return (
-        <div className="relative">
-            {/* 中央时间线 */}
-            <div className="top-0 bottom-0 left-1/2 absolute bg-gray-300 w-1 -translate-x-1/2" />
+        <div className="relative min-h-screen font-mono">
+            {/* 左侧固定封面图片和标题 */}
+            <div className="hidden top-1/2 left-0 z-10 fixed md:flex flex-col items-center p-6 w-1/4 -translate-y-1/2">
+                {coverUrl && (
+                    <div className="relative mb-4 w-full h-80">
+                        <Image 
+                            src={`/series/${coverUrl}`} 
+                            alt={seriesTitle || "封面图片"} 
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
+                )}
+                <h3 className="mt-2 font-semibold text-xl text-center">
+                    {seriesTitle || ""}
+                </h3>
+            </div>
 
-            <div className="space-y-24">
+            {/* 中央时间轴部分 - 绝对定位在页面中央 */}
+            <div className="top-0 bottom-0 left-1/2 z-20 fixed w-3 -translate-x-1/2">
+                {/* 时间轴线 */}
+                <div className="bg-white shadow-neumorphic-weak w-full h-full" />
+            </div>
+
+            {/* 右侧卡片内容区域 - 定位在右半部分居中 */}
+            <div className="space-y-24 ml-auto px-4 py-10 md:pr-8 w-full md:w-1/2">
                 {memoCards.map((card, index) => {
-                    // 构建标题 - 使用season、episode和episodeTitle (如果有)
-                    let title = card.seriesTitle || "";
-                    if (card.season && card.episode) {
-                        title = `${card.seriesTitle} S${card.season}E${card.episode}`;
-                        if (card.episodeTitle) {
-                            title += ` - ${card.episodeTitle}`;
-                        }
-                    }
-
                     // 格式化时间戳
-                    const timestamp = card.createTime
-                        ? dayjs(card.createTime).format('YYYY-MM-DD HH:mm')
+                    const date = card.createTime
+                        ? dayjs(card.createTime).format('YYYY-MM-DD')
                         : '';
-
-                    // 确定位置
-                    const position = index % 2 === 0 ? "left" : "right";
+                    const time = card.createTime
+                        ? dayjs(card.createTime).format('HH:mm:ss')
+                        : '';
 
                     return (
                         <div key={index} className="relative">
-                            {/* 时间线节点 - 添加交互 */}
+                            {/* 节点 - 纵向与卡片中点对齐，横向与屏幕中央（时间轴）对齐 */}
                             <div
-                                className="top-6 left-1/2 z-10 absolute bg-gray-300 hover:bg-gray-500 rounded-full w-4 h-4 transition-colors -translate-x-1/2 duration-200 cursor-pointer"
+                                className="top-1/2 z-30 absolute bg-white shadow-neumorphic-weak rounded-full w-6 h-6 transition-all -translate-y-1/2 duration-200 cursor-pointer"
+                                style={{
+                                    position: 'absolute',
+                                    left: '-29px',
+                                }}
                                 onMouseEnter={() => setHoveredNode(index)}
                                 onMouseLeave={() => setHoveredNode(null)}
                             />
 
-                            {/* 时间戳显示 - 在对侧显示 */}
-                            {hoveredNode === index && (
-                                <div className={cn(
-                                    "absolute top-5 z-20 bg-white shadow-md rounded-md py-1 px-3 flex items-center gap-1 text-sm transition-opacity duration-200",
-                                    position === "left" ? "left-[calc(50%+1rem)]" : "right-[calc(50%+1rem)]"
-                                )}>
-                                    <Clock className="w-3.5 h-3.5" />
-                                    <span>{timestamp}</span>
+                            {/* 时间戳显示 - 悬停时显示 */}
+                            {(alwaysShowTimestamp || hoveredNode === index) && (
+                                <div className="top-1/2 right-[calc(100%+46px)] left-auto z-40 absolute flex flex-col justify-between items-center bg-white shadow-[0_5px_15px_rgba(0,0,0,0.07)] px-4 py-3 rounded-md w-[130px] h-[84px] text-base transition-opacity -translate-y-1/2 duration-200">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-medium">{date}</span>
+                                    </div>
+                                    <span>{time}</span>
                                 </div>
                             )}
 
-                            {/* 卡片内容 */}
-                            <div className={cn(
-                                "grid grid-cols-1 md:grid-cols-2 gap-4",
-                                position === "left" ? "md:grid-flow-dense" : ""
-                            )}>
-                                {/* 左侧卡片 */}
-                                {position === "left" ? (
-                                    <>
-                                        <div className="p-6">
-                                            <MemoCard
-                                                {...card}
-                                                weakBorder={true}
-                                                hideCreateTime={true}
-                                            />
-                                        </div>
-                                        <div className="hidden md:block" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="hidden md:block" />
-                                        <MemoCard
-                                            {...card}
-                                            weakBorder={true}
-                                            hideCreateTime={true}
+                            {/* 移动端封面图片和标题 */}
+                            <div className="md:hidden flex flex-col items-center mb-4">
+                                {card.coverUrl && (
+                                    <div className="relative w-full h-64">
+                                        <Image 
+                                            src={`/series/${card.coverUrl}`} 
+                                            alt={card.seriesTitle || "封面图片"} 
+                                            fill
+                                            className="object-contain"
                                         />
-                                    </>
+                                    </div>
                                 )}
+                                <h3 className="mt-2 font-semibold text-xl text-center">
+                                    {card.seriesTitle || ""}
+                                </h3>
                             </div>
-
-                            {/* 移动端标题显示 */}
-                            <div className="md:hidden mt-2 font-medium text-center">
-                                {title}
-                            </div>
+                            
+                            {/* 卡片内容 */}
+                            <>
+                                {/* 剧集信息 */}
+                                {card.season && card.episode && (
+                                    <div className="mb-5 text-[18px] text-center tracking-[0.5px]">
+                                        第{card.season}季第{card.episode}集{card.episodeTitle ? `: ${card.episodeTitle}` : ''}
+                                    </div>
+                                )}
+                                <MemoCard
+                                    {...card}
+                                    weakBorder={true}
+                                    hideCreateTime={true}
+                                />
+                            </>
                         </div>
                     )
                 })}
-
-                {/* 时间线底部节点 */}
-                {/* <div className="bottom-0 left-1/2 absolute bg-gray-300 rounded-full w-4 h-4 -translate-x-1/2" /> */}
             </div>
         </div>
     )
