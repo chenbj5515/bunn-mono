@@ -8,7 +8,7 @@ import { DemoCard } from "@/components/memo-card/demo-card"
 import { DemoWordCard } from "@/components/word-card/demo-word-card"
 import { MemoCard } from "@/components/memo-card/memo-card"
 import DemoDailyReport from "@/components/daily-report/demo-daily-report";
-import { client } from "@server/lib/api-client";
+// import { client } from "@server/lib/api-client";
 // import DemoExam from "@/components/exam/demo-exam"
 
 

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import type { Poster } from './page'; // 从 page.tsx 导入 Poster 类型
 import { UploadDialog } from '@/components/upload-dialog';
 import { uploadSeriesCover, deleteSeriesCover } from '@/components/upload-dialog/server-functions';
+import { useRouter, usePathname } from 'next/navigation';
 
 // 定义卡片位置类型
 interface CardPosition {
@@ -19,6 +20,8 @@ interface SeriesListClientProps {
 }
 
 const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [currentPosterId, setCurrentPosterId] = useState<string | null>(null);
   // 添加本地状态保存海报图片
@@ -124,6 +127,14 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
 
   const containerHeight = `calc(${maxTopPercentage}vh + 280px)`; // 280px 约为海报高度
 
+  // 添加处理海报点击的函数
+  const handlePosterClick = (posterId: string) => {
+    // 获取当前locale
+    const locale = pathname.split('/')[1];
+    // 跳转到该海报系列的timeline页面
+    router.push(`/${locale}/timeline/${posterId}`);
+  };
+
   return (
     <div className="mx-auto w-full font-mono">
       <div className="relative overflow-visible" style={{ height: containerHeight }}>
@@ -190,6 +201,7 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
                     style={{
                       zIndex: 'inherit',
                     }}
+                    onClick={() => hasImage && poster && hasCover ? handlePosterClick(poster.id) : undefined}
                   >
                     {hasImage && poster && (
                       <div className="relative w-full h-full">
