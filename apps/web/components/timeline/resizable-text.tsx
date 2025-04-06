@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react";
+import Cookies from 'js-cookie';
 
 // 定义 ResizableText 组件的属性类型
 export interface ResizableTextProps {
@@ -11,6 +12,8 @@ export interface ResizableTextProps {
     fontSize?: number;
     showShadow?: boolean;
     initialPosition?: { x: number, y: number };
+    initialSize?: { width: number, height: number } | null; // 添加initialSize属性
+    cookieId?: string; // 用于保存cookie的唯一标识
 }
 
 // 可调整大小和位置的文本组件
@@ -21,10 +24,20 @@ export const ResizableText = ({
     className = '', 
     fontSize: initialFontSize = 18,
     showShadow = true,
-    initialPosition = { x: 0, y: 0 }
+    initialPosition = { x: 0, y: 0 },
+    initialSize, // 接收initialSize属性
+    cookieId // 用于保存cookie的唯一标识
 }: ResizableTextProps) => {
+    // 计算cookie键名
+    const positionCookieKey = cookieId ? `text_position_${cookieId}` : '';
+    const sizeCookieKey = cookieId ? `text_size_${cookieId}` : '';
+    
+    // 初始状态使用传入的默认值，避免服务端和客户端不一致
     const [position, setPosition] = useState(initialPosition);
-    const [size, setSize] = useState({ width: width || 200, height: height || 80 });
+    // 如果提供了initialSize，使用它，否则使用width和height
+    const [size, setSize] = useState(
+        initialSize || { width: width || 200, height: height || 80 }
+    );
     const [fontSize] = useState(initialFontSize);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
@@ -33,6 +46,33 @@ export const ResizableText = ({
     const [startSize, setStartSize] = useState({ width: 0, height: 0 });
     const [resizeDirection, setResizeDirection] = useState<string | null>(null);
     const textRef = useRef<HTMLDivElement>(null);
+
+    // 客户端初始化时从cookie中读取数据
+    useEffect(() => {
+        if (cookieId) {
+            try {
+                const savedPosition = Cookies.get(positionCookieKey);
+                if (savedPosition) {
+                    setPosition(JSON.parse(savedPosition));
+                }
+                
+                const savedSize = Cookies.get(sizeCookieKey);
+                if (savedSize) {
+                    setSize(JSON.parse(savedSize));
+                }
+            } catch (e) {
+                console.error("Failed to parse data from cookie:", e);
+            }
+        }
+    }, [cookieId, positionCookieKey, sizeCookieKey]);
+
+    // 保存位置和尺寸到cookie
+    const saveToCookie = () => {
+        if (cookieId) {
+            Cookies.set(positionCookieKey, JSON.stringify(position), { expires: 365 });
+            Cookies.set(sizeCookieKey, JSON.stringify(size), { expires: 365 });
+        }
+    };
 
     // 开始拖动
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -128,6 +168,9 @@ export const ResizableText = ({
         setIsResizing(false);
         setIsInteracting(false);
         setResizeDirection(null);
+        
+        // 当用户完成拖动或调整大小后，保存到cookie
+        saveToCookie();
     };
 
     // 添加和移除全局鼠标事件监听器

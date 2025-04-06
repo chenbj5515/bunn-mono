@@ -2,32 +2,33 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Cookies from 'js-cookie';
 
 // 定义 ResizableImage 组件的属性类型
 export interface ResizableImageProps {
     src: string;
     alt: string;
-    width?: number;
-    height?: number;
     className?: string;
     showShadow?: boolean;
-    initialPosition?: { x: number, y: number };
+    initialPosition: { x: number, y: number };
+    initialSize: { width: number, height: number };
     borderRadius?: number;
+    cookieId?: string;
 }
 
 // 可调整大小和位置的图片组件
 export const ResizableImage = ({
     src,
     alt,
-    width,
-    height,
     className = '',
     showShadow = true,
-    initialPosition = { x: 0, y: 0 },
-    borderRadius = 0
+    initialPosition,
+    initialSize,
+    borderRadius = 0,
+    cookieId
 }: ResizableImageProps) => {
     const [position, setPosition] = useState(initialPosition);
-    const [size, setSize] = useState({ width: width || 40, height: height || 40 });
+    const [size, setSize] = useState(initialSize);
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [isInteracting, setIsInteracting] = useState(false);
@@ -35,6 +36,9 @@ export const ResizableImage = ({
     const [startSize, setStartSize] = useState({ width: 0, height: 0 });
     const [resizeDirection, setResizeDirection] = useState<string | null>(null);
     const imageRef = useRef<HTMLDivElement>(null);
+
+    const positionCookieKey = cookieId ? `image_position_${cookieId}` : '';
+    const sizeCookieKey = cookieId ? `image_size_${cookieId}` : '';
 
     // 开始拖动
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -121,15 +125,24 @@ export const ResizableImage = ({
     };
 
     // 结束拖动或调整大小
-    const handleMouseUp = () => {
-        setIsDragging(false);
-        setIsResizing(false);
-        setIsInteracting(false);
-        setResizeDirection(null);
-    };
+
+
+    function handleMouseUp() {
+        if (cookieId) {
+            Cookies.set(positionCookieKey, JSON.stringify(position), { expires: 365 });
+            Cookies.set(sizeCookieKey, JSON.stringify(size), { expires: 365 });
+        }
+    }
 
     // 添加和移除全局鼠标事件监听器
     useEffect(() => {
+        const handleMouseUp = () => {
+            setIsDragging(false);
+            setIsResizing(false);
+            setIsInteracting(false);
+            setResizeDirection(null);
+        };
+
         if (isDragging || isResizing) {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
@@ -169,6 +182,7 @@ export const ResizableImage = ({
                 borderRadius: `${borderRadius}px`,
             }}
             onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
             onDragStart={(e) => e.preventDefault()} // 阻止默认的拖拽行为
         >
             <div className={`bg-transparent w-full h-full overflow-hidden ${showShadow ? 'shadow-md' : ''}`}

@@ -111,7 +111,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
             }}
         >
             {!hideCreateTime && (
-                <div className={`-top-[30px] left-1 absolute ${weakBorder ? 'text-white' : 'text-[#999]'} text-[16px] sm:text-[14px]`}>
+                <div className={`-top-[30px] left-1 absolute text-[#999] text-[16px] sm:text-[14px]`}>
                     {createTime ? getTimeAgo(createTime.toString()) : ""}
                 </div>
             )}

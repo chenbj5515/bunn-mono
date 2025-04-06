@@ -5,12 +5,24 @@ import { and, eq } from "drizzle-orm";
 import { getSession } from '@server/lib/auth';
 import Timeline, { MemoCardWithMetadata } from '@/components/timeline';
 import dayjs from 'dayjs';
+import { cookies } from 'next/headers';
 
 export interface TimelinePageProps {
   params: {
     locale: string;
     seriesId: string;
   }
+}
+
+// 定义元素样式类型
+interface ElementStyle {
+  position: { x: number; y: number } | null;
+  size: { width: number; height: number } | null;
+}
+
+// 定义元素样式集合类型
+interface ElementsStyleProps {
+  [key: string]: ElementStyle;
 }
 
 const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
@@ -116,7 +128,44 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     return <div className="mx-auto p-8 container">系列不存在或无权访问</div>;
   }
 
-  return <Timeline memoCards={memoCards} />;
+  // 从cookie中读取元素位置和大小信息
+  const cookieStore = await cookies();
+  
+  // 定义需要读取的元素列表
+  const elements = ['title', 'cover'];
+  const elementsStyle = {} as ElementsStyleProps;
+  
+  // 遍历所有元素获取它们的位置和大小
+  for (const element of elements) {
+    const isImage = ['title', 'cover'].includes(element);
+    const prefix = isImage ? 'image' : 'text';
+    
+    // 构建cookie键名
+    const positionKey = `${prefix}_position_timeline_${element}_${seriesId}`;
+    const sizeKey = `${prefix}_size_timeline_${element}_${seriesId}`;
+    
+    // 获取cookie
+    const positionCookie = cookieStore.get(positionKey);
+    const sizeCookie = cookieStore.get(sizeKey);
+    
+    // 解析cookie值
+    const position = positionCookie?.value ? JSON.parse(positionCookie.value) : null;
+    const size = sizeCookie?.value ? JSON.parse(sizeCookie.value) : null;
+    
+    // 只有当至少有一个值存在时才添加到elementsStyle
+    if (position || size) {
+      // 将下划线分隔的键转换为驼峰式
+      // const camelKey = element.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+      elementsStyle[element] = { position, size };
+    }
+  }
+  
+  // 将样式信息传递给Timeline组件
+  return <Timeline 
+    memoCards={memoCards} 
+    seriesId={seriesId} 
+    elementsStyle={elementsStyle} 
+  />;
 };
 
 export default TimelinePage; 
