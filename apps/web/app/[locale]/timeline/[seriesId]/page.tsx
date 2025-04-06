@@ -5,6 +5,39 @@ import { and, eq } from "drizzle-orm";
 import { getSession } from '@server/lib/auth';
 import Timeline, { MemoCardWithMetadata } from '@/components/timeline';
 import { cookies } from 'next/headers';
+import sizeOf from 'image-size';
+
+// 导入获取远程图片尺寸的工具函数
+async function getImageDimensions(url: string, type: 'cover' | 'title'): Promise<{ aspectRatio: number } | null> {
+  if (!url) return null;
+
+  try {
+    // 如果URL是相对路径，需要处理成完整的URL
+    const isRelativePath = !url.startsWith('http');
+    const fullUrl = isRelativePath ? `${process.env.NEXT_PUBLIC_APP_URL}/${type === 'cover' ? 'series' : 'titles'}/${url}` : url;
+    
+    console.log(fullUrl, "fullUrl=====");
+    // 获取图片数据
+    const response = await fetch(fullUrl, { method: 'GET' });
+    if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // 使用image-size获取尺寸
+    const dimensions = sizeOf(buffer);
+    
+    if (dimensions.width && dimensions.height) {
+      const aspectRatio = dimensions.width / dimensions.height;
+      return { aspectRatio };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting image dimensions:', error);
+    return null;
+  }
+}
 
 export interface TimelinePageProps {
   params: {
@@ -36,6 +69,9 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
   let memoCards: MemoCardWithMetadata[] = [];
   let seriesTitle = "";
   let coverUrl = "";
+  let titleUrl = "";
+  let coverAspectRatio: number | null = null;
+  let titleAspectRatio: number | null = null;
 
   try {
     // 获取系列信息，包括基本信息和自定义封面
@@ -52,11 +88,13 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     if (seriesData.length > 0) {
       seriesTitle = seriesData[0]?.title || "";
       coverUrl = seriesData[0]?.coverUrl || "";
+      // titleUrl = seriesData[0]?.coverUrl || "";
 
       // 检查是否有自定义封面
       const customCoverData = await db
         .select({
           customCoverUrl: userSeriesMaterials.customCoverUrl,
+          titleUrl: userSeriesMaterials.customTitleUrl,
         })
         .from(userSeriesMaterials)
         .where(
@@ -67,8 +105,24 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
         )
         .limit(1);
 
-      if (customCoverData.length > 0 && customCoverData[0]?.customCoverUrl) {
-        coverUrl = customCoverData[0]?.customCoverUrl;
+      if (customCoverData.length > 0) {
+        if (customCoverData[0]?.customCoverUrl) {
+          coverUrl = customCoverData[0].customCoverUrl;
+        }
+        if (customCoverData[0]?.titleUrl) {
+          titleUrl = customCoverData[0].titleUrl;
+        }
+      }
+
+      // 获取图片的长宽比
+      if (coverUrl) {
+        const dimensions = await getImageDimensions(coverUrl, 'cover');
+        coverAspectRatio = dimensions?.aspectRatio || null;
+      }
+      
+      if (titleUrl) {
+        const dimensions = await getImageDimensions(titleUrl, 'title');
+        titleAspectRatio = dimensions?.aspectRatio || null;
       }
     }
 
@@ -160,6 +214,8 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     }
   }
   
+  console.log(coverAspectRatio, "coverAspectRatio=====");
+  console.log(coverUrl, "coverUrl=====");
   // 将样式信息传递给Timeline组件
   return <Timeline 
     memoCards={memoCards} 
@@ -167,6 +223,9 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     elementsStyle={elementsStyle} 
     seriesTitle={seriesTitle}
     coverUrl={coverUrl}
+    titleUrl={titleUrl}
+    coverAspectRatio={coverAspectRatio}
+    titleAspectRatio={titleAspectRatio}
   />;
 };
 

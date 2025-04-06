@@ -14,6 +14,7 @@ export interface ResizableImageProps {
     initialSize: { width: number, height: number };
     borderRadius?: number;
     cookieId?: string;
+    aspectRatio?: number | null;
 }
 
 // 可调整大小和位置的图片组件
@@ -25,7 +26,8 @@ export const ResizableImage = ({
     initialPosition,
     initialSize,
     borderRadius = 0,
-    cookieId
+    cookieId,
+    aspectRatio
 }: ResizableImageProps) => {
     const [position, setPosition] = useState(initialPosition);
     const [size, setSize] = useState(initialSize);
@@ -40,6 +42,8 @@ export const ResizableImage = ({
 
     const positionCookieKey = cookieId ? `image_position_${cookieId}` : '';
     const sizeCookieKey = cookieId ? `image_size_${cookieId}` : '';
+
+    console.log(src, "src=====");
 
     // 开始拖动
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -79,7 +83,11 @@ export const ResizableImage = ({
                 y: e.clientY - startPos.y
             });
         } else if (isResizing && resizeDirection) {
-            const aspectRatio = startSize.width / startSize.height;
+            // 使用提供的长宽比或计算当前长宽比
+            const imageAspectRatio = aspectRatio !== undefined && aspectRatio !== null
+                ? aspectRatio
+                : startSize.width / startSize.height;
+                
             let deltaWidth = 0;
             let newWidth = startSize.width;
             let newHeight = startSize.height;
@@ -91,24 +99,24 @@ export const ResizableImage = ({
                 case 'bottom-right':
                     deltaWidth = e.clientX - startPos.x;
                     newWidth = Math.max(40, startSize.width + deltaWidth);
-                    newHeight = newWidth / aspectRatio;
+                    newHeight = newWidth / imageAspectRatio;
                     break;
                 case 'bottom-left':
                     deltaWidth = startPos.x - e.clientX;
                     newWidth = Math.max(40, startSize.width + deltaWidth);
-                    newHeight = newWidth / aspectRatio;
+                    newHeight = newWidth / imageAspectRatio;
                     newX = position.x - (newWidth - startSize.width);
                     break;
                 case 'top-right':
                     deltaWidth = e.clientX - startPos.x;
                     newWidth = Math.max(40, startSize.width + deltaWidth);
-                    newHeight = newWidth / aspectRatio;
+                    newHeight = newWidth / imageAspectRatio;
                     newY = position.y - (newHeight - startSize.height);
                     break;
                 case 'top-left':
                     deltaWidth = startPos.x - e.clientX;
                     newWidth = Math.max(40, startSize.width + deltaWidth);
-                    newHeight = newWidth / aspectRatio;
+                    newHeight = newWidth / imageAspectRatio;
                     newX = position.x - (newWidth - startSize.width);
                     newY = position.y - (newHeight - startSize.height);
                     break;

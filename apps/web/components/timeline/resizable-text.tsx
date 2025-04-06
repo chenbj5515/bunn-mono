@@ -22,7 +22,7 @@ export const ResizableText = ({
     width, 
     height, 
     className = '', 
-    fontSize: initialFontSize = 18,
+    fontSize = 28,
     showShadow = true,
     initialPosition = { x: 0, y: 0 },
     initialSize, // 接收initialSize属性
@@ -38,7 +38,8 @@ export const ResizableText = ({
     const [size, setSize] = useState(
         initialSize || { width: width || 200, height: height || 80 }
     );
-    const [fontSize] = useState(initialFontSize);
+
+    console.log(position, size, "size=====");
     const [isDragging, setIsDragging] = useState(false);
     const [isResizing, setIsResizing] = useState(false);
     const [isInteracting, setIsInteracting] = useState(false);
@@ -46,25 +47,7 @@ export const ResizableText = ({
     const [startSize, setStartSize] = useState({ width: 0, height: 0 });
     const [resizeDirection, setResizeDirection] = useState<string | null>(null);
     const textRef = useRef<HTMLDivElement>(null);
-
-    // 客户端初始化时从cookie中读取数据
-    useEffect(() => {
-        if (cookieId) {
-            try {
-                const savedPosition = Cookies.get(positionCookieKey);
-                if (savedPosition) {
-                    setPosition(JSON.parse(savedPosition));
-                }
-                
-                const savedSize = Cookies.get(sizeCookieKey);
-                if (savedSize) {
-                    setSize(JSON.parse(savedSize));
-                }
-            } catch (e) {
-                console.error("Failed to parse data from cookie:", e);
-            }
-        }
-    }, [cookieId, positionCookieKey, sizeCookieKey]);
+    const [isHovering, setIsHovering] = useState(false);
 
     // 保存位置和尺寸到cookie
     const saveToCookie = () => {
@@ -181,18 +164,12 @@ export const ResizableText = ({
             
             // 添加移动和调整时禁用选择的样式
             document.body.style.userSelect = 'none';
-            document.body.style.webkitUserSelect = 'none';
-            (document.body.style as any).MozUserSelect = 'none';
-            (document.body.style as any).msUserSelect = 'none';
         } else {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
             
             // 恢复文本选择
             document.body.style.userSelect = '';
-            document.body.style.webkitUserSelect = '';
-            (document.body.style as any).MozUserSelect = '';
-            (document.body.style as any).msUserSelect = '';
         }
 
         return () => {
@@ -201,16 +178,13 @@ export const ResizableText = ({
             
             // 确保清理
             document.body.style.userSelect = '';
-            document.body.style.webkitUserSelect = '';
-            (document.body.style as any).MozUserSelect = '';
-            (document.body.style as any).msUserSelect = '';
         };
     }, [isDragging, isResizing, resizeDirection]);
 
     return (
         <div 
             ref={textRef}
-            className={`text-[rgb(135 135 135)] fixed ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className}`}
+            className={`font-[500] text-[rgb(135 135 135)] fixed ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className}`}
             style={{
                 left: `${position.x}px`,
                 top: `${position.y}px`,
@@ -219,12 +193,12 @@ export const ResizableText = ({
                 background: 'transparent',
                 zIndex: 50,
                 userSelect: 'none',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none' as any,
-                msUserSelect: 'none' as any,
-                border: isInteracting ? '2px dashed rgba(0, 150, 255, 0.7)' : 'none',
+                border: isInteracting ? '2px solid rgb(59, 130, 246)' : 'none',
             }}
             onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
             onDragStart={(e) => e.preventDefault()}
         >
             <div 
@@ -235,46 +209,59 @@ export const ResizableText = ({
                     textAlign: 'center',
                     textShadow: '0 0 10px rgba(255, 255, 255, 0.7)',
                     userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    MozUserSelect: 'none' as any,
-                    msUserSelect: 'none' as any
                 }}
             >
                 {text}
             </div>
             {/* 右下角调整手柄 */}
             <div 
-                className={`right-0 bottom-0 absolute resize-handle cursor-se-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30 rounded-bl-lg' : ''}`}
+                className={`right-0 bottom-0 absolute resize-handle cursor-se-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderBottomRightRadius: '0px',
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'bottom-right')}
             />
             {/* 左下角调整手柄 */}
             <div 
-                className={`bottom-0 left-0 absolute resize-handle cursor-sw-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30 rounded-br-lg' : ''}`}
+                className={`bottom-0 left-0 absolute resize-handle cursor-sw-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderBottomLeftRadius: '0px',
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'bottom-left')}
             />
             {/* 右上角调整手柄 */}
             <div 
-                className={`top-0 right-0 absolute resize-handle cursor-ne-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30 rounded-bl-lg' : ''}`}
+                className={`top-0 right-0 absolute resize-handle cursor-ne-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderTopRightRadius: '0px',
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'top-right')}
             />
             {/* 左上角调整手柄 */}
             <div 
-                className={`top-0 left-0 absolute resize-handle cursor-nw-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30 rounded-br-lg' : ''}`}
+                className={`top-0 left-0 absolute resize-handle cursor-nw-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderTopLeftRadius: '0px',
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'top-left')}
             />

@@ -52,19 +52,19 @@ export async function insertMemoCard(
             if (existingSeries.length === 0) {
 
                 const seriesList = [
-                    'Attack on Titan.jpg',
+                    'Attack on Titan.png',
                     'Cyberpunk: Edgerunners.png',
-                    'Dragon Ball.webp',
-                    'Neon Genesis Evangelion.avif',
-                    'Hunter x Hunter.webp',
-                    'Jujutsu Kaisen.webp',
-                    'Detective Conan.jpg',
-                    'One Punch Man.webp',
-                    'The Seven Deadly Sins.webp',
-                    'Summer Time Rendering.webp',
+                    'Dragon Ball.png',
+                    'Neon Genesis Evangelion.png',
+                    'Hunter x Hunter.png',
+                    'Jujutsu Kaisen.png',
+                    'Detective Conan.png',
+                    'One Punch Man.png',
+                    'The Seven Deadly Sins.png',
+                    'Summer Time Rendering.png',
                     'Weathering with You.png',
-                    'Anohana: The Flower We Saw That Day.jpeg',
-                    'Your Name.jpeg'
+                    'Anohana: The Flower We Saw That Day.png',
+                    'Your Name.png'
                 ];
 
                 const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {

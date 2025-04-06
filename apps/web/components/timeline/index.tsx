@@ -40,12 +40,27 @@ interface TimelineProps {
     elementsStyle?: ElementsStyleProps // 添加元素样式属性
     seriesTitle: string // 添加剧集标题作为独立参数
     coverUrl: string // 添加封面URL作为独立参数
+    titleUrl?: string // 添加自定义标题URL
+    coverAspectRatio?: number | null // 封面图片的长宽比
+    titleAspectRatio?: number | null // 标题图片的长宽比
 }
 
-export default function Timeline({ memoCards, seriesId, elementsStyle, seriesTitle, coverUrl }: TimelineProps) {
+export default function Timeline({
+    memoCards,
+    seriesId,
+    elementsStyle,
+    seriesTitle,
+    coverUrl,
+    titleUrl,
+    coverAspectRatio,
+    titleAspectRatio
+}: TimelineProps) {
     // 不再从第一个卡片获取封面和标题，而是直接使用参数
     console.log(seriesTitle, "seriesTitle=====");
     console.log(coverUrl, "coverUrl=====");
+    console.log(titleUrl, "titleUrl=====");
+    console.log(coverAspectRatio, "coverAspectRatio=====");
+    console.log(titleAspectRatio, "titleAspectRatio=====");
 
     // 添加页面级别的禁用文本选择功能
     useEffect(() => {
@@ -77,15 +92,28 @@ export default function Timeline({ memoCards, seriesId, elementsStyle, seriesTit
                     showShadow={false}
                     cookieId={generateCookieId("timeline_title")}
                 /> */}
-
-                <ResizableImage
-                    src={"/titles/flower name.png"}
-                    alt="cyberpunk"
-                    initialPosition={elementsStyle?.title?.position || { x: 80, y: 10 }}
-                    initialSize={elementsStyle?.title?.size || { width: 350, height: 400 }}
-                    showShadow={false}
-                    cookieId={generateCookieId("timeline_title")}
-                />
+                {
+                    titleUrl ? (
+                        <ResizableImage
+                            src={titleUrl.startsWith('https') ? titleUrl : `/titles/${titleUrl}`}
+                            alt="cyberpunk"
+                            initialPosition={elementsStyle?.title?.position || { x: 80, y: 10 }}
+                            initialSize={elementsStyle?.title?.size || { width: 350, height: 400 }}
+                            showShadow={false}
+                            cookieId={generateCookieId("timeline_title")}
+                            aspectRatio={titleAspectRatio}
+                        />
+                    ) : (
+                        <ResizableText
+                            text={seriesTitle}
+                            fontSize={18}
+                            initialPosition={{ x: 450, y: 220 }}
+                            initialSize={elementsStyle?.title?.size}
+                            showShadow={false}
+                            cookieId={generateCookieId("timeline_japanese_text")}
+                        />
+                    )
+                }
 
                 {/* <ResizableImage
                         src={"/assets/quotes.png"}
@@ -109,18 +137,6 @@ export default function Timeline({ memoCards, seriesId, elementsStyle, seriesTit
                         cookieId={generateCookieId("timeline_say")}
                     /> */}
 
-                {/* 添加日文文字 */}
-                {/* <ResizableText
-                        text='この世界で名を残す方法はどう生きるかじゃない。どう死ぬかよ。'
-                        width={214}
-                        height={80}
-                        fontSize={18}
-                        initialPosition={{ x: 450, y: 220 }}
-                        initialSize={elementsStyle?.japaneseText?.size}
-                        showShadow={false}
-                        cookieId={generateCookieId("timeline_japanese_text")}
-                    /> */}
-
                 {coverUrl && (
                     <ResizableImage
                         src={coverUrl.startsWith('https') ? coverUrl : `/series/${coverUrl}`}
@@ -130,6 +146,7 @@ export default function Timeline({ memoCards, seriesId, elementsStyle, seriesTit
                         className="shadow-poster"
                         borderRadius={20}
                         cookieId={generateCookieId("timeline_cover")}
+                        aspectRatio={coverAspectRatio}
                     />
                 )}
             </>
