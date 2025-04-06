@@ -1,10 +1,9 @@
 import { FC } from 'react';
 import { db } from "@db/index";
-import { memoCard, series, seriesMetadata, userSeriesCovers } from "@db/schema";
+import { memoCard, series, seriesMetadata, userSeriesMaterials } from "@db/schema";
 import { and, eq } from "drizzle-orm";
 import { getSession } from '@server/lib/auth';
 import Timeline, { MemoCardWithMetadata } from '@/components/timeline';
-import dayjs from 'dayjs';
 import { cookies } from 'next/headers';
 
 export interface TimelinePageProps {
@@ -57,13 +56,13 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
       // 检查是否有自定义封面
       const customCoverData = await db
         .select({
-          customCoverUrl: userSeriesCovers.customCoverUrl,
+          customCoverUrl: userSeriesMaterials.customCoverUrl,
         })
-        .from(userSeriesCovers)
+        .from(userSeriesMaterials)
         .where(
           and(
-            eq(userSeriesCovers.seriesId, seriesId),
-            eq(userSeriesCovers.userId, session.user.id)
+            eq(userSeriesMaterials.seriesId, seriesId),
+            eq(userSeriesMaterials.userId, session.user.id)
           )
         )
         .limit(1);
@@ -114,8 +113,9 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     memoCards = memoCardsData.map(card => ({
       ...card,
       translatedText: null, // 根据需要设置翻译文本
-      seriesTitle,
-      coverUrl,
+      // 移除这两个字段，它们将作为独立参数传递
+      // seriesTitle,
+      // coverUrl,
       // 确保 originalText 不为 null
       originalText: card.originalText || "",
     }));
@@ -165,6 +165,8 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     memoCards={memoCards} 
     seriesId={seriesId} 
     elementsStyle={elementsStyle} 
+    seriesTitle={seriesTitle}
+    coverUrl={coverUrl}
   />;
 };
 

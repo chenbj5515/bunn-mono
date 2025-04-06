@@ -17,9 +17,8 @@ export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> 
     season?: number | null
     episode?: number | null
     episodeTitle?: string | null
-    // 额外添加的字段
-    seriesTitle?: string
-    coverUrl?: string
+    // 这两个字段从这里移除，作为独立参数
+    translatedText?: string | null
 }
 
 // 定义元素样式类型
@@ -31,7 +30,7 @@ interface ElementStyle {
 // 定义元素样式集合类型
 interface ElementsStyleProps {
     title?: ElementStyle;
-    cover?: ElementStyle; 
+    cover?: ElementStyle;
 }
 
 interface TimelineProps {
@@ -39,24 +38,20 @@ interface TimelineProps {
     alwaysShowTimestamp?: boolean // 控制时间戳是否永远显示
     seriesId?: string // 添加seriesId参数
     elementsStyle?: ElementsStyleProps // 添加元素样式属性
+    seriesTitle: string // 添加剧集标题作为独立参数
+    coverUrl: string // 添加封面URL作为独立参数
 }
 
-export default function Timeline({ memoCards, seriesId, elementsStyle }: TimelineProps) {
-    const [hoveredNode, setHoveredNode] = useState<number | null>(null)
-    const [isClientRendered, setIsClientRendered] = useState(false)
-
-    console.log(elementsStyle, "elementsStyle=====");
-    // 获取第一个卡片的封面和标题用于固定展示
-    const firstCard = memoCards.length > 0 ? memoCards[0] : null;
-    const coverUrl = firstCard?.coverUrl || "";
-    const seriesTitle = firstCard?.seriesTitle || "";
+export default function Timeline({ memoCards, seriesId, elementsStyle, seriesTitle, coverUrl }: TimelineProps) {
+    // 不再从第一个卡片获取封面和标题，而是直接使用参数
+    console.log(seriesTitle, "seriesTitle=====");
+    console.log(coverUrl, "coverUrl=====");
 
     // 添加页面级别的禁用文本选择功能
     useEffect(() => {
         // 添加全局样式来禁用文本选择
         document.body.style.userSelect = 'none';
         // 标记客户端渲染完成
-        setIsClientRendered(true);
 
         return () => {
             // 组件卸载时恢复文本选择
@@ -72,19 +67,27 @@ export default function Timeline({ memoCards, seriesId, elementsStyle }: Timelin
     return (
         <div className={`relative min-h-screen font-mono ${noSelectClass}`}>
             {/* 使用客户端渲染标记控制可调整元素的显示 */}
-            {isClientRendered && (
-                <>
-                    {/* 固定位置的标题、文字和海报 */}
-                    <ResizableImage
-                        src={"/titles/cyberpunk.png"}
-                        alt="cyberpunk"
-                        initialPosition={elementsStyle?.title?.position || { x: 80, y: 10 }}
-                        initialSize={elementsStyle?.title?.size || { width: 400, height: 100 }}
-                        showShadow={false}
-                        cookieId={generateCookieId("timeline_title")}
-                    />
+            <>
+                {/* 固定位置的标题、文字和海报 */}
+                {/* <ResizableImage
+                    src={"/titles/flower name.png"}
+                    alt="cyberpunk"
+                    initialPosition={elementsStyle?.title?.position || { x: 80, y: 10 }}
+                    initialSize={elementsStyle?.title?.size || { width: 400, height: 100 }}
+                    showShadow={false}
+                    cookieId={generateCookieId("timeline_title")}
+                /> */}
 
-                    {/* <ResizableImage
+                <ResizableImage
+                    src={"/titles/flower name.png"}
+                    alt="cyberpunk"
+                    initialPosition={elementsStyle?.title?.position || { x: 80, y: 10 }}
+                    initialSize={elementsStyle?.title?.size || { width: 350, height: 400 }}
+                    showShadow={false}
+                    cookieId={generateCookieId("timeline_title")}
+                />
+
+                {/* <ResizableImage
                         src={"/assets/quotes.png"}
                         alt="cyberpunk"
                         width={40}
@@ -95,7 +98,7 @@ export default function Timeline({ memoCards, seriesId, elementsStyle }: Timelin
                         cookieId={generateCookieId("timeline_quotes")}
                     /> */}
 
-                    {/* <ResizableImage
+                {/* <ResizableImage
                         src={"/assets/say.png"}
                         alt="cyberpunk"
                         width={40}
@@ -106,8 +109,8 @@ export default function Timeline({ memoCards, seriesId, elementsStyle }: Timelin
                         cookieId={generateCookieId("timeline_say")}
                     /> */}
 
-                    {/* 添加日文文字 */}
-                    {/* <ResizableText
+                {/* 添加日文文字 */}
+                {/* <ResizableText
                         text='この世界で名を残す方法はどう生きるかじゃない。どう死ぬかよ。'
                         width={214}
                         height={80}
@@ -118,19 +121,18 @@ export default function Timeline({ memoCards, seriesId, elementsStyle }: Timelin
                         cookieId={generateCookieId("timeline_japanese_text")}
                     /> */}
 
-                    {coverUrl && (
-                        <ResizableImage
-                            src={coverUrl.startsWith('https') ? coverUrl : `/series/${coverUrl}`}
-                            alt={seriesTitle || "封面图片"}
-                            initialPosition={elementsStyle?.cover?.position || { x: 80, y: 120 }}
-                            initialSize={elementsStyle?.cover?.size || { width: 364, height: 546 }}
-                            className="shadow-poster"
-                            borderRadius={20}
-                            cookieId={generateCookieId("timeline_cover")}
-                        />
-                    )}
-                </>
-            )}
+                {coverUrl && (
+                    <ResizableImage
+                        src={coverUrl.startsWith('https') ? coverUrl : `/series/${coverUrl}`}
+                        alt={seriesTitle || "封面图片"}
+                        initialPosition={elementsStyle?.cover?.position || { x: 80, y: 120 }}
+                        initialSize={elementsStyle?.cover?.size || { width: 364, height: 546 }}
+                        className="shadow-poster"
+                        borderRadius={20}
+                        cookieId={generateCookieId("timeline_cover")}
+                    />
+                )}
+            </>
 
             {/* 中央时间轴部分 - 绝对定位在页面中央 */}
             <div className="top-0 bottom-0 left-1/2 z-20 fixed w-3 -translate-x-1/2">
@@ -175,12 +177,12 @@ export default function Timeline({ memoCards, seriesId, elementsStyle }: Timelin
                             {/* 移动端封面图片和标题 */}
                             {/* <div className="md:hidden flex flex-col items-start mb-4 pl-[70px]">
                                 <h2 className="mb-4 w-full font-bold text-2xl text-left">
-                                    {card.seriesTitle || ""}
+                                    {seriesTitle || ""}
                                 </h2>
-                                {isClientRendered && card.coverUrl && (
+                                {isClientRendered && coverUrl && (
                                     <ResizableImage
-                                        src={`/series/${card.coverUrl}`}
-                                        alt={card.seriesTitle || "封面图片"}
+                                        src={coverUrl.startsWith('https') ? coverUrl : `/series/${coverUrl}`}
+                                        alt={seriesTitle || "封面图片"}
                                         width={300}
                                         height={450}
                                         className="shadow-poster"
@@ -201,7 +203,7 @@ export default function Timeline({ memoCards, seriesId, elementsStyle }: Timelin
                                     {...card}
                                     weakBorder={true}
                                     hideCreateTime={false}
-                                    // hideCreateTime={true}
+                                // hideCreateTime={true}
                                 />
                             </>
                         </div>

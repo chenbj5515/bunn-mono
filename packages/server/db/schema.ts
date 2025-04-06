@@ -194,7 +194,7 @@ export const seriesMetadata = pgTable('series_metadata', {
 	// 可以添加其他剧集特有的元数据
 });
 
-export const userSeriesCovers = pgTable('user_series_covers', {
+export const userSeriesMaterials = pgTable('user_series_materials', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	userId: text('user_id')
 		.notNull()
@@ -203,8 +203,9 @@ export const userSeriesCovers = pgTable('user_series_covers', {
 		.notNull()
 		.references(() => series.id, { onDelete: 'cascade' }),
 	customCoverUrl: text('custom_cover_url').notNull(),
+	customTitleUrl: text('custom_title_url'),
 	createTime: timestamp("create_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updateTime: timestamp("update_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
-	unique('user_series_cover_unique').on(table.userId, table.seriesId),
+	unique('user_series_materials_unique').on(table.userId, table.seriesId),
 ]);
