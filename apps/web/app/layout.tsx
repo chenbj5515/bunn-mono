@@ -1,5 +1,5 @@
 // import localFont from "next/font/local";
-// import "./globals.css";
+import "./globals.css";
 import "@ui/styles/globals.css";
 import { Pacifico } from 'next/font/google';
 import { Metadata } from 'next';
