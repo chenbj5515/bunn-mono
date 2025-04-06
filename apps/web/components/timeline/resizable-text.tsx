@@ -11,9 +11,11 @@ export interface ResizableTextProps {
     className?: string;
     fontSize?: number;
     showShadow?: boolean;
-    initialPosition?: { x: number, y: number };
+    initialPosition: { x: number, y: number };
     initialSize?: { width: number, height: number } | null; // 添加initialSize属性
     cookieId?: string; // 用于保存cookie的唯一标识
+    id?: string; // 文字组件ID，用于上传图片
+    onOpenUploadDialog?: (id: string, uploadType?: string) => void; // 打开上传对话框的回调函数
 }
 
 // 可调整大小和位置的文本组件
@@ -26,11 +28,13 @@ export const ResizableText = ({
     showShadow = true,
     initialPosition = { x: 0, y: 0 },
     initialSize, // 接收initialSize属性
-    cookieId // 用于保存cookie的唯一标识
+    cookieId, // 用于保存cookie的唯一标识
+    id = '', // 文字组件ID
+    onOpenUploadDialog // 打开上传对话框的回调函数
 }: ResizableTextProps) => {
     // 计算cookie键名
-    const positionCookieKey = cookieId ? `text_position_${cookieId}` : '';
-    const sizeCookieKey = cookieId ? `text_size_${cookieId}` : '';
+    const positionCookieKey = cookieId ? `title_position_${cookieId}` : '';
+    const sizeCookieKey = cookieId ? `title_size_${cookieId}` : '';
     
     // 初始状态使用传入的默认值，避免服务端和客户端不一致
     const [position, setPosition] = useState(initialPosition);
@@ -48,10 +52,12 @@ export const ResizableText = ({
     const [resizeDirection, setResizeDirection] = useState<string | null>(null);
     const textRef = useRef<HTMLDivElement>(null);
     const [isHovering, setIsHovering] = useState(false);
-
+    
     // 保存位置和尺寸到cookie
     const saveToCookie = () => {
+        console.log(cookieId, "cookieId=====");
         if (cookieId) {
+            console.log(position, size, "cookie cookieId=====");
             Cookies.set(positionCookieKey, JSON.stringify(position), { expires: 365 });
             Cookies.set(sizeCookieKey, JSON.stringify(size), { expires: 365 });
         }
@@ -59,7 +65,7 @@ export const ResizableText = ({
 
     // 开始拖动
     const handleMouseDown = (e: React.MouseEvent) => {
-        if ((e.target as HTMLElement).className.includes('resize-handle')) return;
+        if ((e.target as HTMLElement).className?.includes?.('resize-handle')) return;
         
         e.preventDefault();
         e.stopPropagation(); // 阻止事件冒泡
@@ -184,7 +190,7 @@ export const ResizableText = ({
     return (
         <div 
             ref={textRef}
-            className={`font-[500] text-[rgb(135 135 135)] fixed ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className}`}
+            className={`font-[cursive] font-[900] text-[rgb(135 135 135)] fixed ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className} fixed`}
             style={{
                 left: `${position.x}px`,
                 top: `${position.y}px`,
@@ -197,18 +203,37 @@ export const ResizableText = ({
             }}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            onDragStart={(e) => e.preventDefault()}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
-            onDragStart={(e) => e.preventDefault()}
         >
+            {/* 更换图标 - 位于文字容器上方 */}
             <div 
-                className={`font-NewYork flex items-center justify-center w-full h-full ${showShadow ? 'shadow-md' : ''}`}
+                className={`absolute left-1/2 -translate-x-1/2 -top-12 z-[60] transition-opacity duration-200 ${isHovering ? 'opacity-100' : 'opacity-0'}`}
+            >
+                <div 
+                    className="bg-white hover:bg-gray-100 shadow-md p-2 rounded-full cursor-pointer"
+                    onClick={(e) => {
+                        e.stopPropagation(); // 防止事件冒泡
+                        onOpenUploadDialog && onOpenUploadDialog(id, 'customTitleUrl');
+                    }}
+                    title="上传标题图片替换文字"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </div>
+            </div>
+
+            <div 
+                className={`flex items-center justify-center w-full h-full ${showShadow ? 'shadow-md' : ''}`}
                 style={{
                     fontSize: `${fontSize}px`,
                     lineHeight: '1.4',
                     textAlign: 'center',
                     textShadow: '0 0 10px rgba(255, 255, 255, 0.7)',
                     userSelect: 'none',
+                    position: 'relative', // 添加相对定位以支持内部元素定位
                 }}
             >
                 {text}

@@ -514,6 +514,7 @@
     "uploadDialog": {
         "title": "设置海报",
         "replaceTitle": "更换海报",
+        "titleBackgroundTitle": "上传标题图片",
         "cancel": "取消",
         "applyChanges": "应用更改"
     }

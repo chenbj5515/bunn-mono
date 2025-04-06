@@ -2,9 +2,10 @@
 import { FC, useState } from 'react';
 import { motion } from 'framer-motion';
 import { UploadDialog } from '@/components/upload-dialog';
-import { uploadSeriesCover, deleteSeriesCover } from '@/components/upload-dialog/server-functions';
+import { uploadSeriesCover, deleteSeriesCover, uploadCustomTitleBackground, deleteCustomTitleBackground } from '@/components/upload-dialog/server-functions';
 import { useRouter, usePathname } from 'next/navigation';
 import { PosterCard, Poster } from '@/components/poster-card';
+import { useTranslations } from 'next-intl';
 
 // 定义卡片位置类型
 interface CardPosition {
@@ -21,12 +22,11 @@ interface SeriesListClientProps {
 const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const [localPosterImages, setLocalPosterImages] = useState(posterImages);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [currentPosterId, setCurrentPosterId] = useState<string | null>(null);
-  // 添加本地状态保存海报图片
-  const [localPosterImages, setLocalPosterImages] = useState<Poster[]>(posterImages);
-  // 添加是否为更换操作的状态
   const [isReplacing, setIsReplacing] = useState(false);
+  const [uploadType, setUploadType] = useState<string>("coverUrl"); // 默认为封面上传
   
   // 前10个基础卡片位置和旋转角度配置
   const baseCardPositions: CardPosition[] = [
@@ -68,50 +68,64 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
   }
 
   // 处理上传
-  const handleUpload = async (posterId: string, file: File) => {
-    console.log(`上传图片到海报ID ${posterId}:`, file);
+  const handleUpload = async (posterId: string, file: File, type?: string) => {
+    console.log(`上传图片到海报ID ${posterId}, 类型: ${type || uploadType}:`, file);
+    
+    const actualUploadType = type || uploadType;
     
     // 如果是更换操作，先删除旧资源
     if (isReplacing) {
       const poster = localPosterImages.find(p => p.id === posterId);
       if (poster && poster.src && !poster.src.startsWith('blob:')) {
         try {
-          // 删除服务器上的旧文件
-          await deleteSeriesCover(posterId);
-          console.log(`已删除海报ID ${posterId} 的旧封面`);
+          // 根据上传类型选择适当的删除函数
+          if (actualUploadType === 'customTitleUrl') {
+            await deleteCustomTitleBackground(posterId);
+            console.log(`已删除海报ID ${posterId} 的旧标题背景`);
+          } else {
+            await deleteSeriesCover(posterId);
+            console.log(`已删除海报ID ${posterId} 的旧封面`);
+          }
         } catch (error) {
-          console.error('删除旧封面失败:', error);
+          console.error(`删除旧${actualUploadType === 'customTitleUrl' ? '标题背景' : '封面'}失败:`, error);
         }
       }
     }
     
-    // 上传新文件
-    uploadSeriesCover(posterId, file);
+    // 根据上传类型选择适当的上传函数
+    if (actualUploadType === 'customTitleUrl') {
+      uploadCustomTitleBackground(posterId, file);
+    } else {
+      uploadSeriesCover(posterId, file);
+    }
   };
 
   // 新增回调函数，用于更新海报图片
   const handleImageUpdate = (file: File, imageData: string) => {
     if (currentPosterId) {
-      // 更新本地状态中的海报图片
-      setLocalPosterImages(prev => 
-        prev.map(poster => 
-          poster.id === currentPosterId 
-            ? { ...poster, src: imageData } // 直接使用imageData作为src值
-            : poster
-        )
-      );
-      // 这里可以添加实际的图片上传到服务器的逻辑
-      console.log(`更新了海报ID ${currentPosterId} 的图片:`, { file, imageData });
+      // 仅在更新封面时更新本地状态
+      if (uploadType === 'coverUrl') {
+        setLocalPosterImages(prev => 
+          prev.map(poster => 
+            poster.id === currentPosterId 
+              ? { ...poster, src: imageData } // 直接使用imageData作为src值
+              : poster
+          )
+        );
+      }
+      
+      console.log(`更新了海报ID ${currentPosterId} 的${uploadType === 'customTitleUrl' ? '标题背景' : '封面'}:`, { file, imageData });
     }
   };
 
   // 打开上传对话框
-  const openUploadDialog = (posterId: string) => {
+  const openUploadDialog = (posterId: string, type?: string) => {
     const poster = localPosterImages.find(p => p.id === posterId);
     const hasImage = poster && poster.src;
     
     setCurrentPosterId(posterId);
-    setIsReplacing(!!hasImage); // 如果已有图片，则为更换操作
+    setUploadType(type || 'coverUrl'); // 设置上传类型
+    setIsReplacing(!!hasImage && type !== 'customTitleUrl'); // 对于标题背景，我们不在本地跟踪，所以不确定是否在替换
     setUploadDialogOpen(true);
   };
 
@@ -172,10 +186,11 @@ const SeriesListClient: FC<SeriesListClientProps> = ({ posterImages }) => {
         <UploadDialog
           isOpen={uploadDialogOpen}
           onClose={() => setUploadDialogOpen(false)}
-          onUpload={(file) => handleUpload(currentPosterId, file)}
+          onUpload={(file, type) => handleUpload(currentPosterId, file, type)}
           title={localPosterImages.find(p => p.id === currentPosterId)?.title || ''}
           callback={handleImageUpdate}
           isReplacing={isReplacing}
+          uploadType={uploadType}
         />
       )}
     </div>

@@ -1,7 +1,7 @@
 import { FC } from 'react'
 import SeriesListClient from './series-list-client'
 import { db } from "@db/index"
-import { memoCard, series, userSeriesCovers } from "@db/schema"
+import { memoCard, series, userSeriesMaterials } from "@db/schema"
 import { and, eq } from "drizzle-orm"
 import { getSession } from '@server/lib/auth'
 import { Poster } from '@/components/poster-card'
@@ -50,11 +50,11 @@ const SeriesListPage = async ({ params }: SeriesListPageProps) => {
     // 2. 获取用户自定义封面数据
     const userCovers = await db
       .select({
-        seriesId: userSeriesCovers.seriesId,
-        customCoverUrl: userSeriesCovers.customCoverUrl,
+        seriesId: userSeriesMaterials.seriesId,
+        customCoverUrl: userSeriesMaterials.customCoverUrl,
       })
-      .from(userSeriesCovers)
-      .where(eq(userSeriesCovers.userId, session.user.id))
+      .from(userSeriesMaterials)
+      .where(eq(userSeriesMaterials.userId, session.user.id))
 
     // 创建一个映射以便于查找
     const userCoversMap = new Map()
@@ -63,17 +63,25 @@ const SeriesListPage = async ({ params }: SeriesListPageProps) => {
     })
 
     // 3. 将结果转换为所需的 Poster 格式，优先使用自定义封面
-    seriesList = seriesData.map((item: { id: string; title: string; coverUrl: string }) => ({
-      id: item.id,
-      src: userCoversMap.has(item.id) ? userCoversMap.get(item.id) : item.coverUrl,
-      title: item.title,
-    }))
+    seriesList = seriesData.map((item: { id: string; title: string; coverUrl: string }) => {
+      // 获取自定义封面URL
+      const customCover = userCoversMap.get(item.id);
+      
+      return {
+        id: item.id,
+        // 只有当customCoverUrl存在且不为空时才使用它
+        src: customCover ? customCover : item.coverUrl,
+        title: item.title,
+      };
+    })
 
   } catch (error) {
     console.error("Failed to fetch series data:", error)
     // 在出错时返回空数组
     seriesList = []
   }
+
+  console.log(seriesList, "seriesList=====");
 
   // 4. 将数据传递给客户端组件
   return <SeriesListClient posterImages={seriesList} />

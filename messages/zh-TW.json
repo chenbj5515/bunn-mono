@@ -513,9 +513,10 @@
         "or": "或是"
     },
     "uploadDialog": {
-        "title": "設定海報",
+        "title": "設置海報",
         "replaceTitle": "更換海報",
+        "titleBackgroundTitle": "上傳標題圖片",
         "cancel": "取消",
-        "applyChanges": "套用變更"
+        "applyChanges": "應用更改"
     }
 }

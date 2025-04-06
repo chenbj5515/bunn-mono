@@ -94,7 +94,7 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
       const customCoverData = await db
         .select({
           customCoverUrl: userSeriesMaterials.customCoverUrl,
-          titleUrl: userSeriesMaterials.customTitleUrl,
+          customTitleUrl: userSeriesMaterials.customTitleUrl,
         })
         .from(userSeriesMaterials)
         .where(
@@ -109,8 +109,10 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
         if (customCoverData[0]?.customCoverUrl) {
           coverUrl = customCoverData[0].customCoverUrl;
         }
-        if (customCoverData[0]?.titleUrl) {
-          titleUrl = customCoverData[0].titleUrl;
+        if (customCoverData[0]?.customTitleUrl) {
+          // 将 customTitleUrl 设置为 titleUrl，这样当有自定义标题图片时，
+          // Timeline 组件会使用 ResizableImage 而不是 ResizableText
+          titleUrl = customCoverData[0].customTitleUrl;
         }
       }
 
@@ -191,16 +193,17 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
   
   // 遍历所有元素获取它们的位置和大小
   for (const element of elements) {
-    const isImage = ['title', 'cover'].includes(element);
-    const prefix = isImage ? 'image' : 'text';
+    // const isImage = ['title', 'cover'].includes(element);
+    // const prefix = element;
     
     // 构建cookie键名
-    const positionKey = `${prefix}_position_timeline_${element}_${seriesId}`;
-    const sizeKey = `${prefix}_size_timeline_${element}_${seriesId}`;
-    
+    const positionKey = `${element}_position_timeline_${seriesId}`;
+    const sizeKey = `${element}_size_timeline_${seriesId}`;
     // 获取cookie
     const positionCookie = cookieStore.get(positionKey);
     const sizeCookie = cookieStore.get(sizeKey);
+
+    console.log(positionKey, JSON.parse(positionCookie?.value || '{}'), "positionCookie=====");
     
     // 解析cookie值
     const position = positionCookie?.value ? JSON.parse(positionCookie.value) : null;
@@ -214,8 +217,6 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     }
   }
   
-  console.log(coverAspectRatio, "coverAspectRatio=====");
-  console.log(coverUrl, "coverUrl=====");
   // 将样式信息传递给Timeline组件
   return <Timeline 
     memoCards={memoCards} 

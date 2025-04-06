@@ -5,11 +5,12 @@ import { FC, useState, useEffect } from 'react';
 export const UploadDialog: FC<{
     isOpen: boolean;
     onClose: () => void;
-    onUpload: (file: File) => void;
+    onUpload: (file: File, uploadType?: string) => void;
     title: string;
     callback?: (file: File, imageData: string) => void;
     isReplacing?: boolean;
-}> = ({ isOpen, onClose, onUpload, title, callback, isReplacing = false }) => {
+    uploadType?: string;
+}> = ({ isOpen, onClose, onUpload, title, callback, isReplacing = false, uploadType = "coverUrl" }) => {
     const t = useTranslations('uploadDialog')
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -50,8 +51,8 @@ export const UploadDialog: FC<{
             if (callback) {
                 callback(selectedFile, previewUrl);
             }
-            // 然后调用onUpload处理文件上传
-            onUpload(selectedFile);
+            // 然后调用onUpload处理文件上传，传递上传类型
+            onUpload(selectedFile, uploadType);
             // 最后关闭对话框
             onClose();
         }
@@ -70,6 +71,19 @@ export const UploadDialog: FC<{
         setPreviewUrl(null);
     };
 
+    // 根据上传类型获取合适的标题
+    const getTitle = () => {
+        if (isReplacing) {
+            return t('replaceTitle');
+        }
+        
+        if (uploadType === "customTitleUrl") {
+            return t('titleBackgroundTitle', { fallback: '上传标题背景' });
+        }
+        
+        return t('title');
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -84,15 +98,12 @@ export const UploadDialog: FC<{
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="font-semibold text-gray-800 text-xl">
-                            {isReplacing ? t('replaceTitle') : t('title')}
+                            {getTitle()}
                         </h2>
-                        {/* <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
-                            <span className="text-2xl">&times;</span>
-                        </button> */}
                     </div>
 
                     {previewUrl ? (
-                        <div className="relative mx-auto w-[180px] h-[250px]">
+                        <div className={`relative mx-auto ${uploadType === "customTitleUrl" ? "w-[300px] h-[100px]" : "w-[180px] h-[250px]"}`}>
                             <img 
                                 src={previewUrl} 
                                 alt="Preview" 
@@ -107,7 +118,9 @@ export const UploadDialog: FC<{
                         </div>
                     ) : (
                         <div
-                            className="relative flex flex-col justify-center items-center mx-auto border-2 border-gray-300 hover:border-gray-400 border-dashed rounded-full w-64 h-64 transition-colors cursor-pointer"
+                            className={`relative flex flex-col justify-center items-center mx-auto border-2 border-gray-300 hover:border-gray-400 border-dashed rounded-lg transition-colors cursor-pointer ${
+                                uploadType === "customTitleUrl" ? "w-[300px] h-[100px]" : "w-64 h-64"
+                            }`}
                             onDrop={handleDrop}
                             onDragOver={handleDragOver}
                             onClick={() => document.getElementById('file-upload')?.click()}

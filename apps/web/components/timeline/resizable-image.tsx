@@ -15,6 +15,9 @@ export interface ResizableImageProps {
     borderRadius?: number;
     cookieId?: string;
     aspectRatio?: number | null;
+    id?: string; // 图片组件ID，用于上传图片
+    onOpenUploadDialog?: (id: string, uploadType?: string) => void; // 打开上传对话框的回调函数
+    type?: string; // 图片类型
 }
 
 // 可调整大小和位置的图片组件
@@ -27,7 +30,10 @@ export const ResizableImage = ({
     initialSize,
     borderRadius = 0,
     cookieId,
-    aspectRatio
+    aspectRatio,
+    id = '', // 图片组件ID
+    onOpenUploadDialog, // 打开上传对话框的回调函数
+    type // 图片类型
 }: ResizableImageProps) => {
     const [position, setPosition] = useState(initialPosition);
     const [size, setSize] = useState(initialSize);
@@ -40,14 +46,23 @@ export const ResizableImage = ({
     const imageRef = useRef<HTMLDivElement>(null);
     const [isHovering, setIsHovering] = useState(false);
 
-    const positionCookieKey = cookieId ? `image_position_${cookieId}` : '';
-    const sizeCookieKey = cookieId ? `image_size_${cookieId}` : '';
-
-    console.log(src, "src=====");
+    const positionCookieKey = cookieId ? `${type === 'title' ? 'title' : 'cover'}_position_${cookieId}` : '';
+    const sizeCookieKey = cookieId ? `${type === 'title' ? 'title' : 'cover'}_size_${cookieId}` : '';
 
     // 开始拖动
     const handleMouseDown = (e: React.MouseEvent) => {
-        if ((e.target as HTMLElement).className.includes('resize-handle')) return;
+        // 检查是否点击了更换按钮或其父元素
+        const target = e.target as HTMLElement;
+        if (target.className?.includes?.('resize-handle')) return;
+        
+        // 检查点击元素或其父元素是否为更换按钮
+        let currentElement: HTMLElement | null = target;
+        while (currentElement) {
+            if (currentElement.title === "更换图片") {
+                return; // 如果是点击了更换按钮，则不处理拖动
+            }
+            currentElement = currentElement.parentElement;
+        }
 
         e.preventDefault(); // 防止默认的拖拽行为
         e.stopPropagation(); // 阻止事件冒泡
@@ -134,34 +149,33 @@ export const ResizableImage = ({
     };
 
     // 结束拖动或调整大小
-
-
-    function handleMouseUp() {
-        if (cookieId) {
-            Cookies.set(positionCookieKey, JSON.stringify(position), { expires: 365 });
-            Cookies.set(sizeCookieKey, JSON.stringify(size), { expires: 365 });
-        }
-    }
-
-    // 添加和移除全局鼠标事件监听器
-    useEffect(() => {
-        const handleMouseUp = () => {
+    const handleMouseUp = () => {
+        if (isDragging || isResizing) {
             setIsDragging(false);
             setIsResizing(false);
             setIsInteracting(false);
             setResizeDirection(null);
-        };
+            
+            // 保存到cookie
+            if (cookieId) {
+                Cookies.set(positionCookieKey, JSON.stringify(position), { expires: 365 });
+                Cookies.set(sizeCookieKey, JSON.stringify(size), { expires: 365 });
+            }
+        }
+    };
 
+    // 添加和移除全局鼠标事件监听器
+    useEffect(() => {
         if (isDragging || isResizing) {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
-
+            
             // 添加移动和调整时禁用选择的样式
             document.body.style.userSelect = 'none';
         } else {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
-
+            
             // 恢复文本选择
             document.body.style.userSelect = '';
         }
@@ -169,7 +183,7 @@ export const ResizableImage = ({
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
-
+            
             // 确保清理
             document.body.style.userSelect = '';
         };
@@ -196,6 +210,29 @@ export const ResizableImage = ({
             onMouseLeave={() => setIsHovering(false)}
             onDragStart={(e) => e.preventDefault()} // 阻止默认的拖拽行为
         >
+            {/* 更换图标 - 位于图片容器上方 */}
+            <div 
+                className={`absolute left-1/2 -translate-x-1/2 -top-12 z-[60] transition-opacity duration-200 ${isHovering ? 'opacity-100' : 'opacity-0'}`}
+            >
+                <div 
+                    className="bg-white hover:bg-gray-100 shadow-md p-2 rounded-full cursor-pointer"
+                    onClick={(e) => {
+                        e.preventDefault(); // 防止默认行为
+                        e.stopPropagation(); // 防止事件冒泡
+                        // 确保这里能正确被调用
+                        console.log('更换图片按钮被点击', id);
+                        if (onOpenUploadDialog) {
+                            onOpenUploadDialog(id, type === 'title' ? 'customTitleUrl' : 'customImageUrl');
+                        }
+                    }}
+                    title="更换图片"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </div>
+            </div>
+
             <div className={`bg-transparent w-full h-full overflow-hidden ${showShadow ? 'shadow-md' : ''}`}
                 style={{
                     userSelect: 'none',
