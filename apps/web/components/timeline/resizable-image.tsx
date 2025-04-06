@@ -36,6 +36,7 @@ export const ResizableImage = ({
     const [startSize, setStartSize] = useState({ width: 0, height: 0 });
     const [resizeDirection, setResizeDirection] = useState<string | null>(null);
     const imageRef = useRef<HTMLDivElement>(null);
+    const [isHovering, setIsHovering] = useState(false);
 
     const positionCookieKey = cookieId ? `image_position_${cookieId}` : '';
     const sizeCookieKey = cookieId ? `image_size_${cookieId}` : '';
@@ -178,11 +179,13 @@ export const ResizableImage = ({
                 background: 'transparent',
                 zIndex: 50,
                 userSelect: 'none',
-                border: isInteracting ? '2px dashed rgba(0, 150, 255, 0.7)' : 'none',
+                border: isInteracting ? '2px solid rgb(59, 130, 246)' : 'none',
                 borderRadius: `${borderRadius}px`,
             }}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
             onDragStart={(e) => e.preventDefault()} // 阻止默认的拖拽行为
         >
             <div className={`bg-transparent w-full h-full overflow-hidden ${showShadow ? 'shadow-md' : ''}`}
@@ -205,41 +208,53 @@ export const ResizableImage = ({
             </div>
             {/* 右下角调整手柄 */}
             <div
-                className={`right-0 bottom-0 absolute resize-handle cursor-se-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30' : ''}`}
+                className={`right-0 bottom-0 absolute resize-handle cursor-se-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
-                    borderBottomRightRadius: `${borderRadius}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderBottomRightRadius: `${borderRadius > 0 ? borderRadius : 0}px`,
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'bottom-right')}
             />
             {/* 左下角调整手柄 */}
             <div
-                className={`bottom-0 left-0 absolute resize-handle cursor-sw-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30' : ''}`}
+                className={`bottom-0 left-0 absolute resize-handle cursor-sw-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
-                    borderBottomLeftRadius: `${borderRadius}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderBottomLeftRadius: `${borderRadius > 0 ? borderRadius : 0}px`,
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'bottom-left')}
             />
             {/* 右上角调整手柄 */}
             <div
-                className={`top-0 right-0 absolute resize-handle cursor-ne-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30' : ''}`}
+                className={`top-0 right-0 absolute resize-handle cursor-ne-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
-                    borderTopRightRadius: `${borderRadius}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderTopRightRadius: `${borderRadius > 0 ? borderRadius : 0}px`,
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'top-right')}
             />
             {/* 左上角调整手柄 */}
             <div
-                className={`top-0 left-0 absolute resize-handle cursor-nw-resize ${isInteracting ? 'bg-blue-500 bg-opacity-30' : ''}`}
+                className={`top-0 left-0 absolute resize-handle cursor-nw-resize`}
                 style={{
-                    width: `${Math.max(16, size.width * 0.15)}px`,
-                    height: `${Math.max(16, size.height * 0.15)}px`,
-                    borderTopLeftRadius: `${borderRadius}px`,
+                    width: '10px',
+                    height: '10px',
+                    background: 'rgb(59, 130, 246)',
+                    border: '1px solid white',
+                    borderTopLeftRadius: `${borderRadius > 0 ? borderRadius : 0}px`,
+                    visibility: (isInteracting || isHovering) ? 'visible' : 'hidden',
                 }}
                 onMouseDown={(e) => handleResizeStart(e, 'top-left')}
             />
