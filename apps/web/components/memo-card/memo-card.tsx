@@ -204,7 +204,10 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                                     }  w-[101%] h-[105%] -left-[4px] -top-[2px]`}
                             ></section>
                         ) : null}
-                        <span className="original-text">{originalText}</span>
+                        <span
+                            className="original-text"
+                            dangerouslySetInnerHTML={{ __html: kanaPronunciation || "" }}
+                        ></span>
                     </div>
                 </div>
 
@@ -216,13 +219,13 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         ref={translationTextRef}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
-                        className="pr-[42px] outline-none font-Default whitespace-pre-wrap"
+                        className="pr-[42px] outline-none font-Default text-[18px] whitespace-pre-wrap"
                     >
                         {translation}
                     </span>
                 </div>
 
-                <div>
+                {/* <div>
                     {t('pronunciation')}：
                     <span
                         suppressContentEditableWarning
@@ -231,10 +234,11 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         onFocus={hanldeKanaFocus}
                         onBlur={handleKanaBlur}
                         className="pr-[42px] outline-none whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: kanaPronunciation || "" }}
                     >
                         {kanaPronunciation}
                     </span>
-                </div>
+                </div> */}
 
                 <RecordingControls weakBorder={weakBorder} />
 

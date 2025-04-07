@@ -58,7 +58,7 @@ function MemoCardContent(props: IProps) {
     return (
         <>
             {displayCards?.map(card => (
-                <div className="group relative mx-auto mb-14 max-w-[800px] text-[18px] sm:text-base memo-card" key={card.id}>
+                <div className="group relative mx-auto mb-[88px] max-w-[800px] text-[18px] sm:text-base memo-card" key={card.id}>
                     <button 
                         className="top-0 right-[2%] z-10 absolute opacity-0 group-hover:opacity-100 p-1 rounded-full transition-opacity duration-200"
                         onClick={() => handleDelete(card.id)}
@@ -68,7 +68,7 @@ function MemoCardContent(props: IProps) {
                     <MemoCard {...card} />
                 </div>
             ))}
-            {
+            {/* {
                 localCards.localCardList.length === 0 && displayCards.length === 0 ? (
                     <div className="flex justify-center items-center bg-gradient-to-b from-blue-50 dark:from-blue-900 to-white dark:to-blue-800 mt-[80px]">
                         <div className="mx-auto px-4 lg:px-8 sm:py-24 lg:py-32 text-center">
@@ -87,7 +87,7 @@ function MemoCardContent(props: IProps) {
                         </div>
                     </div>
                 ) : null
-            }
+            } */}
         </>
     );
 }
