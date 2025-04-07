@@ -1,6 +1,7 @@
 "use client"
 import React, { useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import "remixicon/fonts/remixicon.css";
 import { localCardAtom } from '@/lib/atom';
 import { useSetAtom } from 'jotai';
@@ -18,6 +19,7 @@ export default function LayoutClient({
     children: React.ReactNode;
 }>) {
     const pathname = usePathname();
+    const locale = useLocale();
     const setLocalCard = useSetAtom(localCardAtom);
     const urlRef = useRef<string>("");
     const contextContentRef = useRef<any>(null);
@@ -81,8 +83,16 @@ export default function LayoutClient({
                 ]
             });
             if (!pathname.includes('zzs')) {
-                try {
-                    console.log(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, "API_BASE_URL========");
+                try {                    
+                    let translationPrompt;
+                    if (locale === 'zh') {
+                        translationPrompt = `${original_text}，给出这句话的中文翻译，注意一定要中文简体，不要返回翻译结果以外的任何内容。`;
+                    } else if (locale === 'zh-TW') {
+                        translationPrompt = `${original_text}，给出这句话的繁体中文翻译，注意一定要繁体中文，并且要符合台湾人的说话习惯，不要返回翻译结果以外的任何内容。`;
+                    } else if (locale === 'en') {
+                        translationPrompt = `${original_text}，给出这句话的英文翻译，注意一定要英文，并且要符合英文母语者的说话习惯，不要返回翻译结果以外的任何内容。`;
+                    }
+                    
                     const [translationResultResponse, kanaResultResponse] = await Promise.all([
                         fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
                             method: 'POST',
@@ -90,7 +100,7 @@ export default function LayoutClient({
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                prompt: `${original_text}，给出这句话的中文翻译，注意一定要中文，不要返回翻译结果以外的任何内容。`
+                                prompt: translationPrompt
                             })
                         }),
                         // fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
