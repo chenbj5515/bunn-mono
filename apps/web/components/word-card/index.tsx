@@ -1,5 +1,5 @@
 "use client"
-import { speakText } from "@/utils";
+import { speakText } from "@utils/tts";
 import { TWordCard } from "@/app/[locale]/word-cards/page";
 // import { useTripleRightClick } from "@/hooks";
 import { Card } from "ui/components/card"
@@ -17,12 +17,12 @@ export function WordCard(props: IProps) {
 
     function handlePlayBtn(text: string) {
         speakText(text, {
-            voicerName: "ja-JP-NanamiNeural",
+            voiceName: "ja-JP-NanamiNeural",
         });
     }
 
     return (
-        <Card className="relative dark:bg-eleDark mt-2 mb-8 p-5 border border-black rounded-[8px] w-full sm:w-[280px] sm:h-[170px] text-[17px] dark:text-white sm:text-base word-card">
+        <Card className="relative dark:bg-eleDark shadow-neumorphic mt-2 mb-8 p-5 border rounded-[8px] w-full sm:w-[280px] sm:h-[170px] text-[17px] dark:text-white sm:text-base word-card">
             <div
                 className="top-2 right-2 absolute rounded-[50%] w-8 h-8 cursor-pointer play-button-bg"
                 onClick={() => handlePlayBtn(word)}
@@ -49,14 +49,14 @@ export function WordCard(props: IProps) {
             </div>
             <div className="flex justify-between gap-[20px] mt-[32px] mb-[20px] w-full sm:w-[240px]">
                 <Button
-                    className="flex-1 border border-black text-[16px] sm:text-sm"
+                    className="flex-1 shadow-neumorphic border text-[16px] sm:text-sm"
                     onClick={() => onRecognize(wordCardInfo)}
                     variant="outline"
                 >
                     わかる
                 </Button>
                 <Button
-                    className="flex-1 border border-black text-[16px] sm:text-sm"
+                    className="flex-1 shadow-neumorphic border text-[16px] sm:text-sm"
                     onClick={() => onUnRecognize(wordCardInfo)}
                     variant="outline"
                 >
