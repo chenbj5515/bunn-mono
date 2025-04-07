@@ -25,6 +25,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
     const [isHovering, setIsHovering] = React.useState(false);
 
     const [isFocused, setIsFocused] = React.useState(false);
+    const [rubyTranslationMap, setRubyTranslationMap] = React.useState<Record<string, string>>({});
 
     const translationTextRef = React.useRef<HTMLDivElement>(null);
     const originalTextRef = React.useRef<HTMLDivElement>(null);
@@ -49,6 +50,98 @@ export default function MemoCardLocal(props: ILoaclCard) {
             });
         }
     }, [setCardId]);
+
+    // 处理Ruby翻译
+    React.useEffect(() => {
+        if (cardInfoRef.current?.rubyTranslations) {
+            try {
+                const translations = JSON.parse(cardInfoRef.current.rubyTranslations);
+                setRubyTranslationMap(translations);
+            } catch (error) {
+                console.error('解析Ruby翻译数据失败', error);
+            }
+        }
+    }, [cardInfoRef.current?.rubyTranslations]);
+
+    // 增强Ruby元素，添加悬停显示翻译功能
+    React.useEffect(() => {
+        if (!originalTextRef.current) return;
+        
+        const rubyElements = originalTextRef.current.querySelectorAll('ruby');
+        
+        rubyElements.forEach(ruby => {
+            ruby.style.cursor = 'pointer';
+            
+            // 移除所有现有事件监听器
+            ruby.removeEventListener('click', handleRubyClick as any);
+            
+            // 添加点击事件监听器播放发音
+            ruby.addEventListener('click', () => {
+                const rtElement = ruby.querySelector('rt');
+                const rubyText = rtElement?.textContent || '';
+                handleRubyClick(rubyText);
+            });
+            
+            // 获取原文本
+            const textNode = ruby.childNodes[0];
+            const originalWord = textNode ? textNode.textContent || '' : '';
+            
+            // 如果有翻译，添加悬停提示
+            if (originalWord && rubyTranslationMap[originalWord]) {
+                // 创建或更新Tooltip属性
+                ruby.setAttribute('data-tooltip', rubyTranslationMap[originalWord]);
+                ruby.classList.add('has-tooltip');
+                ruby.title = rubyTranslationMap[originalWord];
+            }
+        });
+        
+        return () => {
+            rubyElements.forEach(ruby => {
+                ruby.removeEventListener('click', handleRubyClick as any);
+            });
+        };
+    }, [originalTextRef.current, kanaTextRef.current?.textContent, rubyTranslationMap]);
+
+    // 样式：定义Ruby元素的悬停提示样式
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
+        // 添加CSS样式
+        const styleId = 'ruby-tooltip-style';
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                ruby.has-tooltip {
+                    position: relative;
+                    border-bottom: 1px dotted #888;
+                }
+                
+                ruby.has-tooltip:hover::after {
+                    content: attr(data-tooltip);
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    white-space: nowrap;
+                    z-index: 10;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        return () => {
+            const element = document.getElementById(styleId);
+            if (element) {
+                element.remove();
+            }
+        };
+    }, []);
 
     console.log(original_text, "original_text===")
     useAIStream(
@@ -122,6 +215,12 @@ export default function MemoCardLocal(props: ILoaclCard) {
                 voiceName: "ja-JP-NanamiNeural",
             });
         }
+    }
+
+    function handleRubyClick(text: string) {
+        speakText(text, {
+            voiceName: "ja-JP-NanamiNeural",
+        });
     }
 
     function handleRecordBtnClick() {

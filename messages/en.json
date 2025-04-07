@@ -386,6 +386,11 @@
     "selectWordGuide": "Select Words to Learn",
     "selectWordGuideDesc": "Click on any word or phrase in the sentence to add it to your word cards"
   },
+  "wordCard": {
+    "word": "Word",
+    "meaning": "Meaning",
+    "addToWordCards": "Add to Word Cards"
+  },
   "exam": {
     "title": "Exam",
     "submit": "Submit",

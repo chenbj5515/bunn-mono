@@ -120,6 +120,7 @@ export const memoCard = pgTable("memo_card", {
 	userId: text("user_id").default('chenbj').notNull(),
 	kanaPronunciation: text("kana_pronunciation"),
 	contextUrl: text("context_url"),
+	rubyTranslations: text("ruby_translations"),   // 存储ruby元素的翻译，JSON格式
 	platform: text('platform'),      // 内容类型：'youtube', 'nextflix series'等
 	seriesId: uuid('series_id').references(() => series.id, { onDelete: 'set null' }),          // 关联到具体内容的ID
 });

@@ -385,6 +385,11 @@
         "selectWordGuide": "选择要学习的单词",
         "selectWordGuideDesc": "选取记忆卡片原文中的任何单词或短语将其添加到你的单词卡中"
     },
+    "wordCard": {
+        "word": "语句",
+        "meaning": "意思",
+        "addToWordCards": "添加到单词本"
+    },
     "exam": {
         "title": "考试",
         "submit": "提交",

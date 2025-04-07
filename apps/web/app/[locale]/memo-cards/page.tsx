@@ -61,7 +61,7 @@ export default async function MemoCardsPage() {
       <div className="bottom-2 left-[50%] z-[12] fixed w-[100%] max-w-80-680 min-h-[50px] -translate-x-1/2">
         <InputBox />
       </div>
-      <WordCardAdder />
+      {/* <WordCardAdder /> */}
     </>
   )
 }

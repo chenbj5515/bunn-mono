@@ -386,6 +386,11 @@
         "selectWordGuide": "選擇要學習的單字",
         "selectWordGuideDesc": "選取記憶卡片原文中的任何單字或片語將其加入到你的單字卡中"
     },
+    "wordCard": {
+        "word": "語句",
+        "meaning": "意思",
+        "addToWordCards": "添加到單字本"
+    },
     "exam": {
         "title": "考試",
         "submit": "提交",

@@ -13,6 +13,98 @@ function extractNetflixWatchID(url: string): string | null {
     return match ? match[1] as string : null;
 }
 
+// 从Ruby元素HTML中提取文本和对应的读音
+interface RubyItem {
+    text: string;
+    reading: string;
+}
+
+function extractRubyItemsServer(rubyHTML: string): RubyItem[] {
+    // 服务端无法使用DOM API，使用正则表达式提取Ruby元素
+    const rubyRegex = /<ruby>(.*?)<rt>(.*?)<\/rt><\/ruby>/g;
+    const items: RubyItem[] = [];
+    
+    let match;
+    while ((match = rubyRegex.exec(rubyHTML)) !== null) {
+        const text = match[1] || '';
+        const reading = match[2] || '';
+        
+        if (text.trim()) {
+            items.push({ text, reading });
+        }
+    }
+    
+    return items;
+}
+
+// 获取Ruby元素的翻译
+async function translateRubyItemsServer(
+    originalText: string,
+    rubyItems: RubyItem[],
+    cookieHeader: string
+): Promise<Record<string, string>> {
+    // 如果没有Ruby元素，返回空对象
+    if (rubyItems.length === 0) {
+        return {};
+    }
+    
+    // 构建请求文本
+    const requestText = `
+        在下面句子的上下文中，请翻译以下单词到中文：
+
+        句子: ${originalText}
+
+        单词列表:
+        ${rubyItems.map(item => `- ${item.text}（读音：${item.reading}）`).join('\n')}
+
+        请以JSON格式返回每个单词的中文翻译，格式如下：
+        {
+        "单词1": "翻译1",
+        "单词2": "翻译2"
+        }
+    `;
+
+    try {
+        // 发送请求到API端点
+        const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cookie': cookieHeader
+            },
+            body: JSON.stringify({
+                prompt: requestText,
+                model: 'gpt-4o',
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('翻译请求失败');
+        }
+
+        const data = await response.json();
+        let result: Record<string, string> = {};
+
+        try {
+            // 尝试解析返回的JSON
+            if (data.success && typeof data.data === 'string') {
+                // 提取JSON部分
+                const jsonMatch = data.data.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    result = JSON.parse(jsonMatch[0]);
+                }
+            }
+        } catch (error) {
+            console.error('解析翻译结果失败', error);
+        }
+
+        return result;
+    } catch (error) {
+        console.error('翻译请求出错', error);
+        return {};
+    }
+}
+
 export async function insertMemoCard(
     originalText: string,
     translation: string,
@@ -22,10 +114,26 @@ export async function insertMemoCard(
 ) {
     const session = await getSession();
     const headersList = await headers();
+    const cookieHeader = headersList.get('cookie') || '';
 
-    // console.log(headersList, "insertMemoCard session================")
     if (!session?.user.id) {
         return null;
+    }
+
+    // 处理Ruby元素翻译
+    let rubyTranslations = null;
+    if (pronunciation) {
+        try {
+            const rubyItems = extractRubyItemsServer(pronunciation);
+            if (rubyItems.length > 0) {
+                const translations = await translateRubyItemsServer(originalText, rubyItems, cookieHeader);
+                if (Object.keys(translations).length > 0) {
+                    rubyTranslations = JSON.stringify(translations);
+                }
+            }
+        } catch (error) {
+            console.error('处理Ruby元素翻译时出错', error);
+        }
     }
 
     // 默认值
@@ -71,7 +179,7 @@ export async function insertMemoCard(
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Cookie': headersList.get('cookie') || ''
+                        'Cookie': cookieHeader
                     },
                     body: JSON.stringify({
                         prompt: `如果${seriesList}」这个列表里有一个元素是${seriesTitle}这个剧集的英文译名，返回这个元素的索引。如果任何元素都不是对应的英文译名，那么返回-1。不要返回任何索引以外的内容。`
@@ -109,6 +217,7 @@ export async function insertMemoCard(
         contextUrl: url,
         platform,
         seriesId,
+        rubyTranslations,
     }).returning();
 
     // 异步处理后续操作，不等待完成
