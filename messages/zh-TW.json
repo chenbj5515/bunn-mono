@@ -14,6 +14,11 @@
         },
         "back": "返回"
     },
+    "components": {
+        "recordingControls": {
+            "recording": "錄音中..."
+        }
+    },
     "home": {
         "title": "用AI學習日語",
         "subtitle": "透過個人化AI對話掌握日語",

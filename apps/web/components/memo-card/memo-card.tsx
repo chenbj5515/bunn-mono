@@ -105,7 +105,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
             ref={cardRef}
             className={`shadow-neumorphic w-[86%] m-auto text-[17px] relative p-5 border ${weakBorder ? 'border-gray-200' : ''} text-left leading-[1.9] tracking-[1.5px]`}
             style={{
-                // width: width ? (typeof width === 'number' ? `${width}px` : width) : 'auto',
                 height: height ? (typeof height === 'number' ? `${height}px` : height) : 'auto',
                 minHeight: '420px'
             }}
@@ -123,7 +122,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                             href={contextUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-2 right-2 absolute flex justify-center items-center dark:bg-bgDark dark:shadow-none border border-solid rounded-[50%] w-12 h-12 cursor-pointer`}
+                            className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-2 right-2 absolute flex justify-center items-center dark:bg-bgDark dark:shadow-none border border-solid rounded-[50%] w-[54px] h-[54px] cursor-pointer`}
                         >
                             {
                                 contextUrl.includes("youtube") ? (
@@ -151,9 +150,9 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     ) : (
                         <>
                             <div className="group top-2 right-2 absolute">
-                                <div className="relative pb-[68px] w-12">
+                                <div className="relative pb-[68px] w-[54px]">
                                     <div
-                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover z-10 relative flex justify-center items-center bg-white dark:bg-bgDark dark:shadow-none border-solid rounded-full w-12 h-12 transition-all duration-300 cursor-pointer`}
+                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover z-10 relative flex justify-center items-center bg-white dark:bg-bgDark dark:shadow-none border-solid rounded-full w-[54px] h-[54px] transition-all duration-300 cursor-pointer`}
                                         onClick={handlePlayBtn}
                                     >
                                         <Image
@@ -165,7 +164,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                                         />
                                     </div>
                                     <div
-                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-0 left-0 absolute flex justify-center items-center bg-white opacity-0 group-hover:opacity-100 rounded-full w-12 h-12 transition-all group-hover:translate-y-14 duration-300`}
+                                        className={`mt-2 cursor-pointer shadow-neumorphic hover:shadow-neumorphic-button-hover top-0 left-0 absolute flex justify-center items-center bg-white opacity-0 group-hover:opacity-100 rounded-full w-[54px] h-[54px] transition-all group-hover:translate-y-14 duration-300`}
                                         onClick={() => window.open(contextUrl, "_blank")}
                                     >
                                         <ExternalLink className="w-5 h-5" />

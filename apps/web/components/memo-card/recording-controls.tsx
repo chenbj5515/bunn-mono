@@ -3,12 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Mic, Check, Play, RotateCcw } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from 'next-intl';
 
 interface RecordingControlsProps {
     weakBorder?: boolean;
 }
 
 export function RecordingControls({ weakBorder = false }: RecordingControlsProps) {
+    const t = useTranslations('components.recordingControls');
     const [state, setState] = useState<"idle" | "recording" | "completed">("idle");
     const [isBreathing, setIsBreathing] = useState(true);
     const [audioURL, setAudioURL] = useState<string | null>(null);
@@ -231,55 +233,26 @@ export function RecordingControls({ weakBorder = false }: RecordingControlsProps
                     </button>
                 )}
 
-                <div className="flex justify-center items-center bg-[rgb(247, shadow-neumorphic hover:shadow-neumorphic-button-hover rounded-full w-12 sm:w-14 h-12 sm:h-14 transition-all cursor-pointer 247, 247)]">
-                    <Image src="/icon/microphone.png" alt="mic" width={30} height={30} />
-                </div>
-                {/* 主按钮 */}
-                {/* <button
+                <div 
                     onClick={handleButtonClick}
-                    className={`relative flex items-center justify-center transition-all duration-300 ${state === "idle"
-                            ? "w-20 h-20 rounded-[24px] border border-[#cacaca]"
-                            : state === "recording"
-                                ? "w-20 h-20 rounded-[24px] bg-red-50 border border-red-200"
-                                : "w-20 h-20 rounded-full bg-white border-2 border-green-400"
-                        }`}
+                    className={`flex justify-center items-center bg-[rgb(247, 247, 247)] ${state === "recording" ? "shadow-neumorphic-button-hover" : "shadow-neumorphic"} hover:shadow-neumorphic-button-hover rounded-full w-12 sm:w-14 h-12 sm:h-14 transition-all cursor-pointer`}
                 >
                     {state === "idle" && (
-                        // <Mic
-                        //     className={`w-7 h-7 text-[#9AA1AE] transition-transform duration-1000 ${isBreathing ? "scale-100" : "scale-90"}`}
-                        // />
-                        <Image src="/icon/microphone.png" alt="mic" width={40} height={40} />
+                        <Image src="/icon/microphone.png" alt="mic" width={30} height={30} />
                     )}
-
-                    {state === "recording" && <div className="bg-red-500 rounded-full w-8 h-8 animate-pulse" />}
-
-                    {state === "completed" &&
-                        (state === "completed" && audioURL ? (
-                            <Play className="w-6 h-6 text-green-500" />
-                        ) : (
-                            <Check className="w-8 h-8 text-green-500" />
-                        ))}
-                </button> */}
+                    
+                    {state === "recording" && (
+                        <div className="bg-red-500 rounded-full w-6 h-6 animate-pulse" />
+                    )}
+                    
+                    {state === "completed" && (
+                        <Play className="w-6 h-6 text-[#333]" />
+                    )}
+                </div>
             </div>
 
             {/* 录音状态文字 */}
-            {state === "recording" && <div className="text-gray-500 text-sm">recording</div>}
-
-            {/* 音量可视化 */}
-            {/* {state === "recording" && (
-                <div className="flex justify-center items-end gap-[2px] w-40 h-24">
-                    {volume.map((v, i) => (
-                        <div
-                            key={i}
-                            className="bg-red-400 rounded-full w-1.5"
-                            style={{
-                                height: `${v}px`,
-                                transition: "height 50ms ease-out",
-                            }}
-                        />
-                    ))}
-                </div>
-            )} */}
+            {state === "recording" && <div className="font-medium text-red-500 text-sm">{t('recording')}</div>}
 
             {/* 隐藏的音频元素 */}
             <audio ref={audioRef} src={audioURL || undefined} />

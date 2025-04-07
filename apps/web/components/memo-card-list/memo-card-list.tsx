@@ -69,7 +69,7 @@ function MemoCardContent(props: IProps) {
                 </div>
             ))}
             {
-                localCards.length === 0 && displayCards.length === 0 ? (
+                localCards.localCardList.length === 0 && displayCards.length === 0 ? (
                     <div className="flex justify-center items-center bg-gradient-to-b from-blue-50 dark:from-blue-900 to-white dark:to-blue-800 mt-[80px]">
                         <div className="mx-auto px-4 lg:px-8 sm:py-24 lg:py-32 text-center">
                             <h1 className="font-bold text-black sm:text-[2.2rem] dark:text-white text-3xl tracking-tight">

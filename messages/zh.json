@@ -14,6 +14,11 @@
         },
         "back": "返回"
     },
+    "components": {
+        "recordingControls": {
+            "recording": "录音中..."
+        }
+    },
     "home": {
         "title": "用AI学习日语",
         "subtitle": "通过个性化AI对话掌握日语",
