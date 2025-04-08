@@ -16,6 +16,8 @@ export function useEnhanceRuby({
   id 
 }: UseEnhanceRubyProps) {
   const pathname = usePathname();
+  // 跟踪当前显示的tooltip信息
+  const activeTooltipRef = React.useRef<{word: string; meaning: string} | null>(null);
 
   // 播放Ruby元素的发音
   const handleRubyClick = (text: string) => {
@@ -36,6 +38,58 @@ export function useEnhanceRuby({
       console.error('添加单词失败', error);
     }
   };
+
+  // 添加空格键快捷添加单词功能
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 当按下空格键且有tooltip显示时
+      if (e.code === 'Space' && activeTooltipRef.current) {
+        e.preventDefault(); // 防止页面滚动
+        
+        // 添加按钮按下效果 - 只选择当前活动的tooltip中的按钮
+        const activeTooltip = document.querySelector('.ruby-tooltip-popup');
+        if (activeTooltip) {
+          const addButton = activeTooltip.querySelector('.add-to-dictionary-btn');
+          if (addButton) {
+            addButton.classList.add('btn-active');
+          }
+        }
+      }
+    };
+    
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && activeTooltipRef.current) {
+        const { word, meaning } = activeTooltipRef.current;
+        
+        // 移除按钮按下效果 - 只选择当前活动的tooltip中的按钮
+        const activeTooltip = document.querySelector('.ruby-tooltip-popup');
+        if (activeTooltip) {
+          const addButton = activeTooltip.querySelector('.add-to-dictionary-btn');
+          if (addButton) {
+            addButton.classList.remove('btn-active');
+          }
+        }
+        
+        handleAddToDictionary(word, meaning);
+        
+        // 移除所有tooltip
+        document.querySelectorAll('.ruby-tooltip-popup').forEach(tip => tip.remove());
+        activeTooltipRef.current = null;
+      }
+    };
+
+    // 添加全局键盘事件监听器
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    // 清理函数
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [id]); // 依赖项id，因为handleAddToDictionary使用了id
 
   // 增强Ruby元素，添加悬停显示翻译弹窗功能
   React.useEffect(() => {
@@ -81,6 +135,9 @@ export function useEnhanceRuby({
           const existingTooltips = document.querySelectorAll('.ruby-tooltip-popup');
           existingTooltips.forEach(tip => tip.remove());
 
+          // 更新当前活动的tooltip信息
+          activeTooltipRef.current = { word, meaning };
+
           const tooltip = document.createElement('div');
           tooltip.className = 'ruby-tooltip-popup';
           tooltip.innerHTML = `
@@ -89,18 +146,29 @@ export function useEnhanceRuby({
                 <div class="word-title">語句: ${word}</div>
                 <div class="word-meaning">意味: ${meaning}</div>
               </div>
-              <button class="add-to-dictionary-btn">单語帳に追加</button>
+              <button class="add-to-dictionary-btn">
+                <div class="add-to-dictionary-btn-content">
+                  <span class="space-icon">⎵</span>
+                  <span class="add-text">单語帳に追加</span>
+                </div>
+              </button>
             </div>
           `;
 
           // 计算位置
           const rubyRect = ruby.getBoundingClientRect();
           tooltip.style.position = 'absolute';
-          tooltip.style.top = `${rubyRect.bottom + window.scrollY - 20}px`;
+          tooltip.style.top = `${rubyRect.bottom + window.scrollY}px`;
           tooltip.style.left = `${rubyRect.left + window.scrollX}px`;
 
           // 添加到DOM
           document.body.appendChild(tooltip);
+
+          // 添加鼠标离开事件，当鼠标离开弹窗时关闭弹窗
+          tooltip.addEventListener('mouseleave', () => {
+            tooltip.remove();
+            activeTooltipRef.current = null;
+          });
 
           // 添加按钮点击事件
           const addButton = tooltip.querySelector('.add-to-dictionary-btn');
@@ -108,42 +176,26 @@ export function useEnhanceRuby({
             addButton.addEventListener('click', () => {
               handleAddToDictionary(word, meaning);
               tooltip.remove(); // 添加后关闭弹窗
+              activeTooltipRef.current = null;
             });
           }
         };
 
-        // 移除mouseleave事件，让弹窗保持显示
         ruby.onmouseleave = null;
       }
     });
 
-    // 监听document点击，关闭悬浮窗（点击空白区域或其他ruby元素时关闭）
-    const handleDocumentClick = (e: MouseEvent) => {
-      const tooltip = document.querySelector('.ruby-tooltip-popup');
-      if (tooltip) {
-        const target = e.target as Element;
-        // 如果点击的不是弹窗内部元素，并且不是正在触发弹窗的ruby元素，则关闭弹窗
-        if (!tooltip.contains(target) && !target.closest('.ruby-word-tooltip')) {
-          tooltip.remove();
-        }
-
-        // 如果点击的是另一个ruby元素，也关闭当前弹窗（新弹窗会在mouseenter事件中创建）
-        const clickedRuby = target.closest('ruby');
-        if (clickedRuby && !clickedRuby.contains(e.target as Node)) {
-          tooltip.remove();
-        }
-      }
-    };
-
-    document.addEventListener('click', handleDocumentClick);
-
+    // 清理函数，移除事件监听器
     return () => {
       rubyElements.forEach(ruby => {
         ruby.removeEventListener('click', handleRubyClick as any);
         ruby.onmouseenter = null;
         ruby.onmouseleave = null;
       });
-      document.removeEventListener('click', handleDocumentClick);
+      // 移除所有弹窗
+      document.querySelectorAll('.ruby-tooltip-popup').forEach(tip => tip.remove());
+      // 清除活动tooltip引用
+      activeTooltipRef.current = null;
     };
   }, [originalTextRef, rubyTranslationMap, id]);
 
@@ -179,6 +231,15 @@ export function useEnhanceRuby({
             flex-direction: column;
             gap: 12px;
         }
+
+        .add-to-dictionary-btn-content {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+        }
         
         .ruby-tooltip-popup .word-info {
             display: flex;
@@ -186,19 +247,39 @@ export function useEnhanceRuby({
             gap: 4px;
         }
         
-        
         .ruby-tooltip-popup .add-to-dictionary-btn {
+            width: 100%;
             background: white;
             border: 1px solid #ddd;
+            box-shadow: 2px 2px 4px #bebebe, -4px -4px 8px #ffffff;
             border-radius: 4px;
             padding: 8px 12px;
             font-size: 14px;
             cursor: pointer;
             transition: all 0.2s;
+            height: 36px;
+            position: relative;
         }
         
-        .ruby-tooltip-popup .add-to-dictionary-btn:hover {
-            background: #f5f5f5;
+        .ruby-tooltip-popup .space-icon {
+            position: absolute;
+            left: 16%;
+            top: 25%;
+            transform: translateY(-50%);
+            color: #606060;
+            font-size: 20px;
+        }
+        
+        .ruby-tooltip-popup .add-text {
+            position: absolute;
+            right: 13%; 
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .ruby-tooltip-popup .add-to-dictionary-btn:hover,
+        .ruby-tooltip-popup .add-to-dictionary-btn.btn-active {
+            box-shadow: inset 2px 2px 4px #bebebe, inset -4px -4px 8px #ffffff;
         }
         
         @keyframes fadeIn {

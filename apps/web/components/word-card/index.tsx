@@ -49,14 +49,14 @@ export function WordCard(props: IProps) {
             </div>
             <div className="flex justify-between gap-[20px] mt-[32px] mb-[20px] w-full sm:w-[240px]">
                 <Button
-                    className="flex-1 shadow-neumorphic border text-[16px] sm:text-sm"
+                    className="flex-1 shadow-neumorphic hover:shadow-neumorphic-button-hover border text-[16px] sm:text-sm"
                     onClick={() => onRecognize(wordCardInfo)}
                     variant="outline"
                 >
                     わかる
                 </Button>
                 <Button
-                    className="flex-1 shadow-neumorphic border text-[16px] sm:text-sm"
+                    className="flex-1 shadow-neumorphic hover:shadow-neumorphic-button-hover border text-[16px] sm:text-sm"
                     onClick={() => onUnRecognize(wordCardInfo)}
                     variant="outline"
                 >
