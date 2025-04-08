@@ -209,7 +209,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         {t('originalText')}：
                         {isFocused ? (
                             <section
-                                className={`rounded-lg absolute ${isFocused ? "backdrop-blur-[3px] backdrop-saturate-[180%]" : ""
+                                className={`z-[1000] rounded-lg absolute ${isFocused ? "backdrop-blur-[3px] backdrop-saturate-[180%]" : ""
                                     }  w-[101%] h-[105%] -left-[4px] -top-[2px]`}
                             ></section>
                         ) : null}
@@ -233,21 +233,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         {translation}
                     </span>
                 </div>
-
-                {/* <div>
-                    {t('pronunciation')}：
-                    <span
-                        suppressContentEditableWarning
-                        contentEditable
-                        ref={kanaTextRef}
-                        onFocus={hanldeKanaFocus}
-                        onBlur={handleKanaBlur}
-                        className="pr-[42px] outline-none whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{ __html: kanaPronunciation || "" }}
-                    >
-                        {kanaPronunciation}
-                    </span>
-                </div> */}
 
                 <RecordingControls weakBorder={weakBorder} />
 

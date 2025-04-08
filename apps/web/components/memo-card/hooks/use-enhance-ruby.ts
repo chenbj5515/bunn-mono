@@ -162,19 +162,29 @@ export function useEnhanceRuby({
     if (!originalTextRef.current) return;
 
     const rubyElements = originalTextRef.current.querySelectorAll('ruby');
+    
+    // 创建单一的点击事件处理函数
+    const handleClick = (event: Event) => {
+      const rubyElement = event.currentTarget as HTMLElement;
+      const rtElement = rubyElement.querySelector('rt');
+      if (rtElement) {
+        const rubyText = rtElement.textContent || '';
+        handleRubyClick(rubyText);
+      }
+    };
 
     rubyElements.forEach(ruby => {
       ruby.style.cursor = 'pointer';
 
-      // 移除所有现有事件监听器
-      ruby.removeEventListener('click', handleRubyClick as any);
-
-      // 添加点击事件监听器播放发音
-      ruby.addEventListener('click', () => {
-        const rtElement = ruby.querySelector('rt');
-        const rubyText = rtElement?.textContent || '';
-        handleRubyClick(rubyText);
-      });
+      // 移除所有现有事件监听器，使用克隆节点替换的方式
+      const newRuby = ruby.cloneNode(true);
+      if (ruby.parentNode) {
+        ruby.parentNode.replaceChild(newRuby, ruby);
+        ruby = newRuby as HTMLElement;
+      }
+      
+      // 重新添加唯一的点击事件监听器
+      ruby.addEventListener('click', handleClick);
 
       // 获取原文本
       const textNode = ruby.childNodes[0];
@@ -283,7 +293,8 @@ export function useEnhanceRuby({
     // 清理函数，移除事件监听器
     return () => {
       rubyElements.forEach(ruby => {
-        ruby.removeEventListener('click', handleRubyClick as any);
+        // 使用保存的引用移除事件监听器
+        ruby.removeEventListener('click', handleClick);
         ruby.onmouseenter = null;
         ruby.onmouseleave = null;
         
