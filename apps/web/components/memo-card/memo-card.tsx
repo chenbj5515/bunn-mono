@@ -53,8 +53,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
 
     const cardRef = React.useRef<HTMLDivElement>(null);
 
-    // 使用自定义hook处理Ruby增强功能
-    const { handleRubyClick } = useEnhanceRuby({
+    useEnhanceRuby({
         originalTextRef,
         rubyTranslationMap,
         id

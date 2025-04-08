@@ -7,7 +7,7 @@ import type { InferSelectModel } from "drizzle-orm"
 import { ResizableText } from "./resizable-text"
 import { ResizableImage } from "./resizable-image"
 import { UploadDialog } from '@/components/upload-dialog'
-import { uploadCustomTitleBackground, deleteCustomTitleBackground } from '@/components/upload-dialog/server-functions'
+import { uploadCustomTitleBackground } from '@/components/upload-dialog/server-functions'
 
 // 添加一个自定义CSS类名，用于禁用文本选择
 const noSelectClass = "select-none";

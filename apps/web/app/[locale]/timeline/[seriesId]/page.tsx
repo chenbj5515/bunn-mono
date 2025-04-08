@@ -16,7 +16,6 @@ async function getImageDimensions(url: string, type: 'cover' | 'title'): Promise
     const isRelativePath = !url.startsWith('http');
     const fullUrl = isRelativePath ? `${process.env.NEXT_PUBLIC_APP_URL}/${type === 'cover' ? 'series' : 'titles'}/${url}` : url;
     
-    console.log(fullUrl, "fullUrl=====");
     // 获取图片数据
     const response = await fetch(fullUrl, { method: 'GET' });
     if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -131,23 +130,23 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     // 获取该系列的所有memoCard数据，以及关联的metadata
     const memoCardsData = await db
       .select({
-        // memoCard 的全部字段
+        // 选择memoCard表的所有字段
         id: memoCard.id,
-        content: memoCard.originalText,
-        createTime: memoCard.createTime,
-        updateTime: memoCard.updateTime,
+        userId: memoCard.userId,
         platform: memoCard.platform,
         seriesId: memoCard.seriesId,
-        userId: memoCard.userId,
-        originalText: memoCard.originalText,
-        // 添加缺失的字段
         translation: memoCard.translation,
+        createTime: memoCard.createTime,
+        updateTime: memoCard.updateTime,
         recordFilePath: memoCard.recordFilePath,
+        originalText: memoCard.originalText,
         reviewTimes: memoCard.reviewTimes,
         forgetCount: memoCard.forgetCount,
         kanaPronunciation: memoCard.kanaPronunciation,
         contextUrl: memoCard.contextUrl,
-        // 从series_metadata获取额外信息
+        rubyTranslations: memoCard.rubyTranslations,
+        
+        // 从seriesMetadata中选择需要的字段
         season: seriesMetadata.season,
         episode: seriesMetadata.episode,
         episodeTitle: seriesMetadata.episodeTitle,
@@ -169,11 +168,6 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     memoCards = memoCardsData.map(card => ({
       ...card,
       translatedText: null, // 根据需要设置翻译文本
-      // 移除这两个字段，它们将作为独立参数传递
-      // seriesTitle,
-      // coverUrl,
-      // 确保 originalText 不为 null
-      originalText: card.originalText || "",
     }));
   } catch (error) {
     console.error("获取时间线数据失败:", error);
@@ -202,8 +196,6 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     // 获取cookie
     const positionCookie = cookieStore.get(positionKey);
     const sizeCookie = cookieStore.get(sizeKey);
-
-    console.log(positionKey, JSON.parse(positionCookie?.value || '{}'), "positionCookie=====");
     
     // 解析cookie值
     const position = positionCookie?.value ? JSON.parse(positionCookie.value) : null;
