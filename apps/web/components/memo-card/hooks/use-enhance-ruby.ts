@@ -18,6 +18,11 @@ export function useEnhanceRuby({
   const pathname = usePathname();
   // 跟踪当前显示的tooltip信息
   const activeTooltipRef = React.useRef<{word: string; meaning: string} | null>(null);
+  // 跟踪当前活动的Ruby元素和其对应的弹窗
+  const activeRubyRef = React.useRef<HTMLElement | null>(null);
+  const activeTooltipElementRef = React.useRef<HTMLElement | null>(null);
+  // 添加标志，表示弹窗是否正在创建中
+  const isCreatingTooltipRef = React.useRef<boolean>(false);
 
   // 播放Ruby元素的发音
   const handleRubyClick = (text: string) => {
@@ -38,6 +43,68 @@ export function useEnhanceRuby({
       console.error('添加单词失败', error);
     }
   };
+
+  // 移除所有弹窗的辅助函数
+  const removeAllTooltips = () => {
+    document.querySelectorAll('.ruby-tooltip-popup').forEach(tip => tip.remove());
+    activeTooltipRef.current = null;
+    activeRubyRef.current = null;
+    activeTooltipElementRef.current = null;
+  };
+
+  // 判断鼠标是否在元素内
+  const isMouseInElement = (element: HTMLElement | null, mouseX: number, mouseY: number): boolean => {
+    if (!element) return false;
+    const rect = element.getBoundingClientRect();
+    return (
+      mouseX >= rect.left && 
+      mouseX <= rect.right && 
+      mouseY >= rect.top && 
+      mouseY <= rect.bottom
+    );
+  };
+
+  // 检查鼠标是否在Ruby元素或其子元素（包括rt）内
+  const isMouseInRubyOrChildren = (ruby: HTMLElement | null, mouseX: number, mouseY: number): boolean => {
+    if (!ruby) return false;
+    
+    // 检查整个ruby元素
+    if (isMouseInElement(ruby, mouseX, mouseY)) return true;
+    
+    // 检查rt元素
+    const rtElement = ruby.querySelector('rt');
+    if (rtElement && isMouseInElement(rtElement as HTMLElement, mouseX, mouseY)) return true;
+    
+    return false;
+  };
+
+  // 添加全局鼠标移动监听，控制弹窗显示/隐藏
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      
+      // 如果没有活动的tooltip或者正在创建tooltip，不需要处理
+      if (!activeTooltipRef.current || isCreatingTooltipRef.current) return;
+      
+      // 使用增强的函数检查鼠标是否在Ruby元素或其子元素内
+      const isInRuby = isMouseInRubyOrChildren(activeRubyRef.current, mouseX, mouseY);
+      const isInTooltip = isMouseInElement(activeTooltipElementRef.current, mouseX, mouseY);
+      
+      // 只有当鼠标既不在Ruby元素内也不在弹窗内时，才关闭弹窗
+      if (!isInRuby && !isInTooltip) {
+        removeAllTooltips();
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   // 添加空格键快捷添加单词功能
   React.useEffect(() => {
@@ -74,9 +141,8 @@ export function useEnhanceRuby({
         
         handleAddToDictionary(word, meaning);
         
-        // 移除所有tooltip
-        document.querySelectorAll('.ruby-tooltip-popup').forEach(tip => tip.remove());
-        activeTooltipRef.current = null;
+        // 使用我们的辅助函数移除所有tooltip
+        removeAllTooltips();
       }
     };
 
@@ -89,7 +155,7 @@ export function useEnhanceRuby({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [id]); // 依赖项id，因为handleAddToDictionary使用了id
+  }, [id]);
 
   // 增强Ruby元素，添加悬停显示翻译弹窗功能
   React.useEffect(() => {
@@ -129,12 +195,17 @@ export function useEnhanceRuby({
         ruby.onmouseenter = null;
         ruby.onmouseleave = null;
 
-        // 添加悬停事件
-        ruby.onmouseenter = (e) => {
+        // 创建一个显示弹窗的函数，可以被ruby和rt元素共用
+        const showTooltip = () => {
+          // 设置正在创建弹窗标志
+          isCreatingTooltipRef.current = true;
+          
           // 先移除所有现有弹窗，确保只有一个弹窗显示
-          const existingTooltips = document.querySelectorAll('.ruby-tooltip-popup');
-          existingTooltips.forEach(tip => tip.remove());
+          removeAllTooltips();
 
+          // 设置当前活动的Ruby元素，确保我们引用的是整个ruby标签
+          activeRubyRef.current = ruby as HTMLElement;
+          
           // 更新当前活动的tooltip信息
           activeTooltipRef.current = { word, meaning };
 
@@ -163,25 +234,38 @@ export function useEnhanceRuby({
 
           // 添加到DOM
           document.body.appendChild(tooltip);
-
-          // 添加鼠标离开事件，当鼠标离开弹窗时关闭弹窗
-          tooltip.addEventListener('mouseleave', () => {
-            tooltip.remove();
-            activeTooltipRef.current = null;
-          });
+          
+          // 保存当前活动的弹窗元素引用
+          activeTooltipElementRef.current = tooltip as HTMLElement;
 
           // 添加按钮点击事件
           const addButton = tooltip.querySelector('.add-to-dictionary-btn');
           if (addButton) {
             addButton.addEventListener('click', () => {
               handleAddToDictionary(word, meaning);
-              tooltip.remove(); // 添加后关闭弹窗
-              activeTooltipRef.current = null;
+              removeAllTooltips();
             });
           }
+          
+          // 短延迟后重置创建标志，确保DOM操作完成
+          setTimeout(() => {
+            isCreatingTooltipRef.current = false;
+          }, 50);
         };
 
+        // 添加悬停事件
+        ruby.onmouseenter = showTooltip;
+        
+        // 显式设置onmouseleave为null，确保不会意外关闭弹窗
         ruby.onmouseleave = null;
+        
+        // 给rt元素也添加mouseenter事件，确保鼠标进入rt元素也会触发弹窗
+        const rtElement = ruby.querySelector('rt');
+        if (rtElement) {
+          rtElement.addEventListener('mouseenter', showTooltip);
+          // 设置鼠标样式
+          (rtElement as HTMLElement).style.cursor = 'pointer';
+        }
       }
     });
 
@@ -191,11 +275,15 @@ export function useEnhanceRuby({
         ruby.removeEventListener('click', handleRubyClick as any);
         ruby.onmouseenter = null;
         ruby.onmouseleave = null;
+        
+        // 也要移除rt元素的事件监听器
+        const rtElement = ruby.querySelector('rt');
+        if (rtElement) {
+          rtElement.removeEventListener('mouseenter', () => {});
+        }
       });
       // 移除所有弹窗
-      document.querySelectorAll('.ruby-tooltip-popup').forEach(tip => tip.remove());
-      // 清除活动tooltip引用
-      activeTooltipRef.current = null;
+      removeAllTooltips();
     };
   }, [originalTextRef, rubyTranslationMap, id]);
 
