@@ -130,8 +130,8 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     // 获取该系列的所有memoCard数据，以及关联的metadata
     const memoCardsData = await db
       .select({
-        // 选择memoCard表的所有字段
         id: memoCard.id,
+        metadataId: seriesMetadata.id,
         userId: memoCard.userId,
         platform: memoCard.platform,
         seriesId: memoCard.seriesId,
@@ -187,9 +187,6 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
   
   // 遍历所有元素获取它们的位置和大小
   for (const element of elements) {
-    // const isImage = ['title', 'cover'].includes(element);
-    // const prefix = element;
-    
     // 构建cookie键名
     const positionKey = `${element}_position_timeline_${seriesId}`;
     const sizeKey = `${element}_size_timeline_${seriesId}`;
@@ -204,7 +201,6 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     // 只有当至少有一个值存在时才添加到elementsStyle
     if (position || size) {
       // 将下划线分隔的键转换为驼峰式
-      // const camelKey = element.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
       elementsStyle[element] = { position, size };
     }
   }

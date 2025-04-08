@@ -8,9 +8,12 @@ import { ResizableText } from "./resizable-text"
 import { ResizableImage } from "./resizable-image"
 import { UploadDialog } from '@/components/upload-dialog'
 import { uploadCustomTitleBackground } from '@/components/upload-dialog/server-functions'
+import { updateEpisodeMetadata } from "./server-functions/update-season"
 
 // 添加一个自定义CSS类名，用于禁用文本选择
 const noSelectClass = "select-none";
+// 用于去除contentEditable元素的蓝色边框
+const noOutlineClass = "focus:outline-none hover:bg-gray-100/50 px-1 rounded transition-colors";
 
 // 定义 MemoCardWithMetadata 类型，包含从数据库获取的 MemoCard 和额外的元数据
 export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> {
@@ -18,6 +21,8 @@ export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> 
     season?: number | null
     episode?: number | null
     episodeTitle?: string | null
+    // seriesMetadata表的ID
+    metadataId: string | null
     // 这两个字段从这里移除，作为独立参数
     translatedText?: string | null
 }
@@ -60,6 +65,7 @@ export default function Timeline({
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const [uploadType, setUploadType] = useState<string>("customTitleUrl");
 
+    console.log(memoCards, "memoCards=====");
     // 添加页面级别的禁用文本选择功能
     useEffect(() => {
         // 添加全局样式来禁用文本选择
@@ -80,16 +86,16 @@ export default function Timeline({
     // 处理上传
     const handleUpload = async (file: File, type?: string) => {
         if (!seriesId) return;
-        
+
         console.log(`上传图片到系列ID ${seriesId}, 类型: ${type || uploadType}:`, file);
-        
+
         try {
             // 上传标题图片
             if ((type || uploadType) === 'customTitleUrl') {
-                const result = await uploadCustomTitleBackground(seriesId, file);                
+                const result = await uploadCustomTitleBackground(seriesId, file);
                 // 关闭对话框
                 setUploadDialogOpen(false);
-                
+
                 // 刷新页面以显示新上传的图片
                 window.location.reload();
                 return;
@@ -97,18 +103,52 @@ export default function Timeline({
         } catch (error) {
             console.error("上传图片失败:", error);
         }
-        
+
         // 关闭对话框
         setUploadDialogOpen(false);
     };
-    
+
     // 打开上传对话框
     const openUploadDialog = (id: string, type?: string) => {
         if (!id) return;
-        
+
         setUploadType(type || 'customTitleUrl');
         setUploadDialogOpen(true);
     };
+
+    /**
+     * 处理季度输入框失焦事件
+     * @param id 元数据记录ID
+     * @param value 用户输入的季度值
+     * @returns Promise<{success: boolean, message?: string}>
+     */
+    async function handleSeasonBlur(id: string, value: string | number | null | undefined) {
+        // 如果值为空，可以将season设为null
+        if (value === null || value === undefined || value === "") {
+            return;
+        }
+
+        // 转换为数字类型
+        const seasonNumber = typeof value === "string" ? parseInt(value, 10) : value;
+
+        // 验证是否为合法的smallint(-32768到32767之间的整数)
+        if (
+            isNaN(Number(seasonNumber)) ||
+            !Number.isInteger(seasonNumber) ||
+            seasonNumber < -32768 ||
+            seasonNumber > 32767
+        ) {
+            return {
+                success: false,
+                message: "季度必须是-32768到32767之间的整数"
+            };
+        }
+
+        console.log(seasonNumber, "seasonNumber=====");
+        // 校验通过，调用更新函数
+        return await updateEpisodeMetadata(id, { season: seasonNumber });
+    }
+
 
     return (
         <div className={`relative min-h-[calc(100vh-64px)] font-mono ${noSelectClass}`}>
@@ -167,7 +207,15 @@ export default function Timeline({
                                 {/* 剧集信息 */}
                                 {card.season && card.episode && (
                                     <div className="mb-5 text-[18px] text-center tracking-[0.5px]">
-                                        第{card.season}季第{card.episode}集{card.episodeTitle ? `: ${card.episodeTitle}` : ''}
+                                        第<span
+                                            contentEditable
+                                            suppressContentEditableWarning
+                                            className={noOutlineClass}
+                                            onBlur={(e) => {
+                                                const value = e.currentTarget.textContent;
+                                                handleSeasonBlur(card.metadataId || "", value);
+                                            }}
+                                        >{card.season}</span>季第<span className="p-1">{card.episode}</span>集{card.episodeTitle ? `: ${card.episodeTitle}` : ''}
                                     </div>
                                 )}
                                 <MemoCard
