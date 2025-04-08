@@ -69,7 +69,7 @@ export function useEnhanceRuby({
         // 添加数据属性
         ruby.setAttribute('data-word', word);
         ruby.setAttribute('data-meaning', meaning);
-        ruby.classList.add('ruby-word-tooltip');
+        ruby.classList.add('ruby-word');
 
         // 移除旧的悬停事件
         ruby.onmouseenter = null;
@@ -78,25 +78,27 @@ export function useEnhanceRuby({
         // 添加悬停事件
         ruby.onmouseenter = (e) => {
           // 先移除所有现有弹窗，确保只有一个弹窗显示
-          const existingTooltips = document.querySelectorAll('.ruby-tooltip-popup');
+          const existingTooltips = document.querySelectorAll('.ruby-tooltip-popup-container');
           existingTooltips.forEach(tip => tip.remove());
 
           const tooltip = document.createElement('div');
-          tooltip.className = 'ruby-tooltip-popup';
+          tooltip.className = 'ruby-tooltip-popup-container';
           tooltip.innerHTML = `
-            <div class="tooltip-content">
-              <div class="word-info">
-                <div class="word-title">語句: ${word}</div>
-                <div class="word-meaning">意味: ${meaning}</div>
+            <div class="ruby-tooltip-popup">
+              <div class="tooltip-content">
+                <div class="word-info">
+                  <div class="word-title">語句: ${word}</div>
+                  <div class="word-meaning">意味: ${meaning}</div>
+                </div>
+                <button class="add-to-dictionary-btn">单語帳に追加</button>
               </div>
-              <button class="add-to-dictionary-btn">单語帳に追加</button>
             </div>
           `;
 
           // 计算位置
           const rubyRect = ruby.getBoundingClientRect();
           tooltip.style.position = 'absolute';
-          tooltip.style.top = `${rubyRect.bottom + window.scrollY - 20}px`;
+          tooltip.style.top = `${rubyRect.bottom + window.scrollY - 50}px`;
           tooltip.style.left = `${rubyRect.left + window.scrollX}px`;
 
           // 添加到DOM
@@ -110,40 +112,25 @@ export function useEnhanceRuby({
               tooltip.remove(); // 添加后关闭弹窗
             });
           }
+
+          // 添加鼠标离开事件，当鼠标离开弹窗时自动关闭
+          tooltip.addEventListener('mouseleave', () => {
+            tooltip.remove();
+          });
         };
 
-        // 移除mouseleave事件，让弹窗保持显示
+        // 移除mouseleave事件，让弹窗保持显示，直到鼠标离开弹窗
         ruby.onmouseleave = null;
       }
     });
 
-    // 监听document点击，关闭悬浮窗（点击空白区域或其他ruby元素时关闭）
-    const handleDocumentClick = (e: MouseEvent) => {
-      const tooltip = document.querySelector('.ruby-tooltip-popup');
-      if (tooltip) {
-        const target = e.target as Element;
-        // 如果点击的不是弹窗内部元素，并且不是正在触发弹窗的ruby元素，则关闭弹窗
-        if (!tooltip.contains(target) && !target.closest('.ruby-word-tooltip')) {
-          tooltip.remove();
-        }
-
-        // 如果点击的是另一个ruby元素，也关闭当前弹窗（新弹窗会在mouseenter事件中创建）
-        const clickedRuby = target.closest('ruby');
-        if (clickedRuby && !clickedRuby.contains(e.target as Node)) {
-          tooltip.remove();
-        }
-      }
-    };
-
-    document.addEventListener('click', handleDocumentClick);
-
+    // 不再需要document点击事件来关闭弹窗，移除该逻辑
     return () => {
       rubyElements.forEach(ruby => {
         ruby.removeEventListener('click', handleRubyClick as any);
         ruby.onmouseenter = null;
         ruby.onmouseleave = null;
       });
-      document.removeEventListener('click', handleDocumentClick);
     };
   }, [originalTextRef, rubyTranslationMap, id]);
 
@@ -157,10 +144,16 @@ export function useEnhanceRuby({
       const style = document.createElement('style');
       style.id = styleId;
       style.textContent = `
-        ruby.ruby-word-tooltip {
+        ruby.ruby-word {
             position: relative;
             border-bottom: 1px dotted #888;
-            z-index: 999;
+            z-index: 99;
+        }
+
+        .ruby-tooltip-popup-container {
+          background: transparent;
+          padding-top: 50px;
+          z-index: 100;
         }
         
         .ruby-tooltip-popup {
@@ -185,7 +178,6 @@ export function useEnhanceRuby({
             flex-direction: column;
             gap: 4px;
         }
-        
         
         .ruby-tooltip-popup .add-to-dictionary-btn {
             background: white;
