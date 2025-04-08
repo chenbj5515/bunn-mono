@@ -200,7 +200,18 @@ export function useEnhanceRuby({
           // 设置正在创建弹窗标志
           isCreatingTooltipRef.current = true;
           
-          // 先移除所有现有弹窗，确保只有一个弹窗显示
+          // 检查当前已有弹窗是否显示的是相同单词
+          if (activeTooltipRef.current && activeTooltipRef.current.word === word) {
+            // 如果是相同单词，只需更新引用，不重新创建弹窗
+            activeRubyRef.current = ruby as HTMLElement;
+            // 短延迟后重置创建标志
+            setTimeout(() => {
+              isCreatingTooltipRef.current = false;
+            }, 50);
+            return;
+          }
+          
+          // 不是相同单词，移除所有现有弹窗
           removeAllTooltips();
 
           // 设置当前活动的Ruby元素，确保我们引用的是整个ruby标签
@@ -279,7 +290,11 @@ export function useEnhanceRuby({
         // 也要移除rt元素的事件监听器
         const rtElement = ruby.querySelector('rt');
         if (rtElement) {
-          rtElement.removeEventListener('mouseenter', () => {});
+          // 这里使用空函数会导致移除失败，因为不是同一个函数引用
+          // 我们应该在外部存储showTooltip函数引用或直接不移除（因为整个ruby元素会被清理）
+          // 这里简化处理，因为页面会重新渲染，清理整个DOM，所以不需要精确移除每个事件
+          // 如果想更精确地处理，可以使用WeakMap存储每个ruby元素对应的showTooltip函数
+          // rtElement.removeEventListener('mouseenter', () => {});
         }
       });
       // 移除所有弹窗
