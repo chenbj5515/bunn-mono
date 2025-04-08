@@ -141,7 +141,7 @@ function WordCardsContent(props: IProps) {
     return (
         <>
             {showGlass && cardInfo ? (
-                <div className="top-[0] left-[0] z-[10000] fixed backdrop-blur-[3px] backdrop-saturate-[180%] w-[100vw] h-[100vh] overflow-scroll">
+                <div className="top-[0] left-[0] z-[999] fixed backdrop-blur-[3px] backdrop-saturate-[180%] w-[100vw] h-[100vh] overflow-scroll">
                     <div ref={containerRef} className="top-[50%] left-[50%] absolute p-[22px] w-full sm:w-[auto] sm:min-w-[46vw] max-h-[92%] overflow-auto -translate-x-1/2 -translate-y-1/2 transform">
                         <MemoCard {...cardInfo} />
                     </div>

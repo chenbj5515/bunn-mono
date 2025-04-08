@@ -168,12 +168,13 @@ export default function DemoDailyReport() {
                                 </div>
                             ) : !isAllCompleted ? (
                                 activeItems.map((item) => (
-                                    <StudyCard
-                                        key={item.id}
-                                        {...item}
-                                        onComplete={() => handleComplete(item.id)}
-                                        onShowMemoCard={() => handleShowMemoCard(item.memo_card)}
-                                    />
+                                    // <StudyCard
+                                    //     key={item.id}
+                                    //     {...item}
+                                    //     onComplete={() => handleComplete(item.id)}
+                                    //     onShowMemoCard={() => handleShowMemoCard(item.memo_card)}
+                                    // />
+                                    <></>
                                 ))
                             ) : (
                                 <CompletionMessage key="completion" />

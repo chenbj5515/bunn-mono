@@ -229,7 +229,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         ref={translationTextRef}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
-                        className="pr-[42px] outline-none font-Default text-[18px] whitespace-pre-wrap"
+                        className="pr-[42px] pl-[6px] outline-none font-Default text-[18px] whitespace-pre-wrap"
                     >
                         {translation}
                     </span>

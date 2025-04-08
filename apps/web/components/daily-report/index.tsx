@@ -8,7 +8,7 @@ import { History } from 'lucide-react'
 import { SkeuomorphicCard } from './skeuomorphic-card'
 import { StudyCard } from './study-card'
 import { CompletionMessage } from './completion-message'
-import { Button } from '../../../../packages/ui/components/button'
+import { Button } from 'ui/components/button'
 import { MemoCard } from '@/components/memo-card/memo-card'
 import { useTranslations } from 'next-intl'
 import { memoCard } from '@db/schema'
@@ -72,7 +72,7 @@ export default function DailyReport({ data }: { data: ReportData }) {
   return (
     <div className="pb-[14px]">
       {showMemoCard && currentMemoCard ? (
-        <div className="top-[0] left-[0] z-[10000] fixed backdrop-blur-[3px] backdrop-saturate-[180%] w-[100vw] h-[100vh] overflow-scroll">
+        <div className="top-[0] left-[0] z-[999] fixed backdrop-blur-[3px] backdrop-saturate-[180%] w-[100vw] h-[100vh] overflow-scroll">
           <div ref={containerRef} className="top-[50%] left-[50%] absolute p-[22px] w-full sm:w-[auto] sm:min-w-[46vw] max-h-[92%] overflow-auto -translate-x-1/2 -translate-y-1/2 transform">
             <MemoCard {...currentMemoCard} />
           </div>
