@@ -385,6 +385,12 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     onSelect={handleSelectCharacter}
                 />
             )}
+
+            {/* <CharacterSelectionDialog
+                seriesId={seriesId}
+                onClose={handleCloseCharacterDialog}
+                onSelect={handleSelectCharacter}
+            /> */}
         </Card>
     );
 }

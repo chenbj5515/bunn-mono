@@ -198,7 +198,7 @@ export function CharacterSelectionDialog(
     return (
         <div
             ref={dialogRef}
-            className="top-8 left-0 z-[1000] absolute bg-white dark:bg-gray-800 shadow-lg rounded-lg w-72 max-h-80 overflow-hidden"
+            className="top-[90px] left-[20px] z-[1000] absolute bg-white dark:bg-gray-800 shadow-lg rounded-lg w-72 max-h-80 overflow-hidden"
             style={{ boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}
         >
             {/* 隐藏的文件输入 */}
