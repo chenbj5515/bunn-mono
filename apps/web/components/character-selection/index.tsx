@@ -161,7 +161,7 @@ export function CharacterSelectionDialog(
                     <Input
                         value={character.name}
                         placeholder="输入角色名称"
-                        className="flex-1 h-8 text-sm"
+                        className="flex-1 focus:border-gray-500 focus:ring-0 h-8 text-sm"
                         onChange={(e) => handleNameChange(character.id, e.target.value)}
                         onBlur={() => {
                             if (character.name.trim()) {
@@ -229,7 +229,7 @@ export function CharacterSelectionDialog(
                     <input
                         type="text"
                         placeholder="搜索角色..."
-                        className="px-3 py-1 border rounded-md w-full text-sm"
+                        className="px-3 py-1 border focus:border-gray-500 rounded-md focus:outline-none w-full text-sm transition-colors"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />

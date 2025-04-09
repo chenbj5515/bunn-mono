@@ -1,5 +1,5 @@
 "use client"
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { getTimeAgo } from "@/utils";
 import { speakText } from "@utils/tts"
@@ -39,16 +39,25 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         width,
         height,
         rubyTranslations,
-        seriesId
+        seriesId,
+        characterId
     } = props;
-
-    console.log(props, "props========");
 
     const t = useTranslations('memoCard');
 
     const [isFocused, setIsFocused] = React.useState(false);
     const [isHoveringLabel, setIsHoveringLabel] = React.useState(false);
     const [showCharacterDialog, setShowCharacterDialog] = React.useState(false);
+
+    // 添加本地角色状态
+    const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(() => {
+        // 初始化时，如果有characterId，从characters中查找对应角色
+        if (characterId && props.characters) {
+            return props.characters.find(char => char.id === characterId) || null;
+        }
+        return null;
+    });
+
     const rubyTranslationMap = JSON.parse(rubyTranslations || '{}');
 
     const translationTextRef = React.useRef<HTMLDivElement>(null);
@@ -61,6 +70,16 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const setCardId = useSetAtom(cardIdAtom);
 
     const cardRef = React.useRef<HTMLDivElement>(null);
+
+    // 当characters或characterId变化时更新selectedCharacter
+    useEffect(() => {
+        if (characterId && props.characters) {
+            const character = props.characters.find(char => char.id === characterId);
+            if (character) {
+                setSelectedCharacter(character);
+            }
+        }
+    }, [characterId, props.characters]);
 
     useEnhanceRuby({
         originalTextRef,
@@ -129,23 +148,98 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const handleSelectCharacter = async (character: Character) => {
         try {
             if (id) {
+                // 立即更新本地状态，提供即时反馈
+                setSelectedCharacter(character);
+
+                // 同时更新数据库
                 const result = await updateMemoCardCharacter(id, character.id);
                 if (result.success) {
                     console.log('角色关联更新成功');
                 } else {
                     console.error('角色关联更新失败:', result.message);
+                    // 更新失败，重置本地状态
+                    setSelectedCharacter(null);
                 }
             }
         } catch (error) {
             console.error('更新角色关联出错:', error);
+            // 更新失败，重置本地状态
+            setSelectedCharacter(null);
         }
         setShowCharacterDialog(false);
     }
 
+    // 渲染原始文本标签或角色头像
+    const renderOriginalTextLabel = () => {
+        if (selectedCharacter) {
+            return (
+                <div
+                    className={`inline-flex relative items-center cursor-pointer`}
+                    onClick={handleOpenCharacterDialog}
+                >
+                    <span className="flex flex-col">
+                        <div className="relative">
+                            <img
+                                src={selectedCharacter.avatarUrl || '/placeholder-avatar.png'}
+                                alt={selectedCharacter.name}
+                                className="inline-block mr-1 rounded-full w-10 h-10 object-cover"
+                                onError={(e) => {
+                                    // 图片加载失败时使用占位图
+                                    (e.target as HTMLImageElement).src = '/placeholder-avatar.png';
+                                }}
+                            />
+                            <span className="-top-5 left-[45%] absolute text-gray-600 text-xs whitespace-nowrap -translate-x-1/2">
+                                {selectedCharacter.name}
+                            </span>
+                        </div>
+                    </span>
+
+                    {isHoveringLabel && (
+                        <div className="-top-10 left-1/2 z-50 absolute bg-white hover:bg-gray-100 shadow-md p-2 rounded-full -translate-x-[27px] cursor-pointer">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-5 h-5 text-gray-700"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </div>
+                    )}
+                </div>
+            );
+        } else {
+            return (
+                <div
+                    className="inline-flex relative items-center cursor-pointer"
+                    onMouseEnter={() => setIsHoveringLabel(true)}
+                    onMouseLeave={() => setIsHoveringLabel(false)}
+                    onClick={handleOpenCharacterDialog}
+                >
+                    <span className="inline-block whitespace-nowrap">{t('originalText')}</span>
+                    {isHoveringLabel && (
+                        <div className="-top-10 left-1/2 z-50 absolute bg-white hover:bg-gray-100 shadow-md p-2 rounded-full -translate-x-[27px] cursor-pointer">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-5 h-5 text-gray-700"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+    };
+
     return (
         <Card
             ref={cardRef}
-            className={`shadow-neumorphic w-[86%] m-auto text-[17px] relative p-5 border ${weakBorder ? 'border-gray-200' : ''} text-left leading-[1.9] tracking-[1.5px]`}
+            className={`shadow-neumorphic w-[86%] m-auto text-[17px] relative p-5 pt-[42px] border ${weakBorder ? 'border-gray-200' : ''} text-left leading-[1.9] tracking-[1.5px]`}
             style={{
                 height: height ? (typeof height === 'number' ? `${height}px` : height) : 'auto',
                 minHeight: '420px'
@@ -235,31 +329,11 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     <div
                         suppressContentEditableWarning
                         // contentEditable
-                        className="relative outline-none w-[calc(100%-42px)]"
+                        className={`relative flex items-center outline-none w-[calc(100%-42px)] ${selectedCharacter ? "items-center" : "items-baseline"}`}
                         onBlur={handleOriginalTextBlur}
                         ref={originalTextRef}
                     >
-                        <div 
-                            className="inline-flex relative items-center cursor-pointer"
-                            onMouseEnter={() => setIsHoveringLabel(true)}
-                            onMouseLeave={() => setIsHoveringLabel(false)}
-                            onClick={handleOpenCharacterDialog}
-                        >
-                            <span className="inline-block">{t('originalText')}：</span>
-                            {isHoveringLabel && (
-                                <div className="-top-10 left-1/2 z-50 absolute bg-white hover:bg-gray-100 shadow-md p-2 rounded-full -translate-x-[27px] cursor-pointer">
-                                    <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        className="w-5 h-5 text-gray-700" 
-                                        fill="none" 
-                                        viewBox="0 0 24 24" 
-                                        stroke="currentColor"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                </div>
-                            )}
-                        </div>
+                        {renderOriginalTextLabel()}：
                         {isFocused ? (
                             <section
                                 className={`z-[1000] rounded-lg absolute ${isFocused ? "backdrop-blur-[3px] backdrop-saturate-[180%]" : ""
@@ -274,7 +348,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                 </div>
 
                 <div>
-                    {t('translation')}：
+                    <span className="inline-block w-11">{t('translation')}</span>：
                     <span
                         suppressContentEditableWarning
                         contentEditable
@@ -305,9 +379,9 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
 
             {/* 角色选择弹窗 */}
             {showCharacterDialog && seriesId && (
-                <CharacterSelectionDialog 
-                    seriesId={seriesId} 
-                    onClose={handleCloseCharacterDialog} 
+                <CharacterSelectionDialog
+                    seriesId={seriesId}
+                    onClose={handleCloseCharacterDialog}
                     onSelect={handleSelectCharacter}
                 />
             )}
