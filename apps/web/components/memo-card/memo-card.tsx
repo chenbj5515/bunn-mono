@@ -18,6 +18,7 @@ import { useEnhanceRuby } from "./hooks/use-enhance-ruby";
 import { CharacterSelectionDialog } from "../character-selection";
 import { Character } from "../timeline";
 import { updateMemoCardCharacter } from "../timeline/server-functions/update-character";
+import { Tooltip, TooltipContent, TooltipTrigger } from "ui/components/tooltip";
 
 export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     onDelete?: (id: string) => void;
@@ -193,45 +194,23 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                             </span>
                         </div>
                     </span>
-
-                    {isHoveringLabel && (
-                        <div className="-top-10 left-1/2 z-50 absolute bg-white hover:bg-gray-100 shadow-md p-2 rounded-full -translate-x-[27px] cursor-pointer">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-5 h-5 text-gray-700"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                        </div>
-                    )}
                 </div>
             );
         } else {
             return (
-                <div
-                    className="inline-flex relative items-center cursor-pointer"
-                    onMouseEnter={() => setIsHoveringLabel(true)}
-                    onMouseLeave={() => setIsHoveringLabel(false)}
-                    onClick={handleOpenCharacterDialog}
-                >
-                    <span className="inline-block whitespace-nowrap">{t('originalText')}</span>
-                    {isHoveringLabel && (
-                        <div className="-top-10 left-1/2 z-50 absolute bg-white hover:bg-gray-100 shadow-md p-2 rounded-full -translate-x-[27px] cursor-pointer">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-5 h-5 text-gray-700"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div
+                            className="inline-flex relative items-center cursor-pointer"
+                            onClick={handleOpenCharacterDialog}
+                        >
+                            <span className="inline-block whitespace-nowrap">{t('originalText')}</span>
                         </div>
-                    )}
-                </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <span>上传角色头像</span>
+                    </TooltipContent>
+                </Tooltip>
             );
         }
     };
