@@ -25,7 +25,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
     const [isHovering, setIsHovering] = React.useState(false);
 
     const [isFocused, setIsFocused] = React.useState(false);
-    const [rubyTranslationMap, setRubyTranslationMap] = React.useState<Record<string, string>>({});
+    const [rubyTranslationRecord, setrubyTranslationRecord] = React.useState<Record<string, string>>({});
 
     const translationTextRef = React.useRef<HTMLDivElement>(null);
     const originalTextRef = React.useRef<HTMLDivElement>(null);
@@ -56,7 +56,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
         if (cardInfoRef.current?.rubyTranslations) {
             try {
                 const translations = JSON.parse(cardInfoRef.current.rubyTranslations);
-                setRubyTranslationMap(translations);
+                setrubyTranslationRecord(translations);
             } catch (error) {
                 console.error('解析Ruby翻译数据失败', error);
             }
@@ -87,11 +87,11 @@ export default function MemoCardLocal(props: ILoaclCard) {
             const originalWord = textNode ? textNode.textContent || '' : '';
             
             // 如果有翻译，添加悬停提示
-            if (originalWord && rubyTranslationMap[originalWord]) {
+            if (originalWord && rubyTranslationRecord[originalWord]) {
                 // 创建或更新Tooltip属性
-                ruby.setAttribute('data-tooltip', rubyTranslationMap[originalWord]);
+                ruby.setAttribute('data-tooltip', rubyTranslationRecord[originalWord]);
                 ruby.classList.add('has-tooltip');
-                ruby.title = rubyTranslationMap[originalWord];
+                ruby.title = rubyTranslationRecord[originalWord];
             }
         });
         
@@ -100,7 +100,7 @@ export default function MemoCardLocal(props: ILoaclCard) {
                 ruby.removeEventListener('click', handleRubyClick as any);
             });
         };
-    }, [originalTextRef.current, kanaTextRef.current?.textContent, rubyTranslationMap]);
+    }, [originalTextRef.current, kanaTextRef.current?.textContent, rubyTranslationRecord]);
 
     // 样式：定义Ruby元素的悬停提示样式
     React.useEffect(() => {

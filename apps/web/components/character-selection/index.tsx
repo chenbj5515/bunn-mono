@@ -9,6 +9,7 @@ import { Input } from "ui/components/input";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/components/avatar";
 import { createCharacter, updateCharacter } from "./server-functions/create-update-character";
 import { v4 as uuidv4 } from 'uuid';
+import { useTranslations } from 'next-intl';
 
 // 角色选择弹窗组件
 export function CharacterSelectionDialog(
@@ -23,6 +24,7 @@ export function CharacterSelectionDialog(
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const dialogRef = React.useRef<HTMLDivElement>(null);
     const { characters, loading, error, refetch } = useRoleList(seriesId);
+    const t = useTranslations('characterSelection');
 
     // 合并服务端角色和临时角色
     const allCharacters = [...characters, ...temporaryCharacters];
@@ -148,7 +150,7 @@ export function CharacterSelectionDialog(
                             }}
                         >
                             {character.avatarUrl ? (
-                                <AvatarImage src={character.avatarUrl} alt={character.name || '新角色'} />
+                                <AvatarImage src={character.avatarUrl} alt={character.name || t('newCharacter')} />
                             ) : (
                                 <Upload className="top-1/2 left-1/2 absolute w-4 h-4 text-black -translate-x-1/2 -translate-y-1/2" />
                             )}
@@ -158,7 +160,7 @@ export function CharacterSelectionDialog(
                     {/* 角色名称输入 */}
                     <Input
                         value={character.name}
-                        placeholder="输入角色名称"
+                        placeholder={t('enterCharacterName')}
                         className="flex-1 focus:border-black focus-visible:outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 h-8 placeholder:text-gray-500 text-sm"
                         onChange={(e) => handleNameChange(character.id, e.target.value)}
                         onBlur={() => {
@@ -226,7 +228,7 @@ export function CharacterSelectionDialog(
                 <div className="relative flex-1">
                     <input
                         type="text"
-                        placeholder="搜索角色"
+                        placeholder={t('searchCharacter')}
                         className="px-3 py-1 border focus:border-gray-500 rounded-md focus:outline-none w-full text-gray-500 placeholder:text-gray-500 text-sm transition-colors"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -261,11 +263,11 @@ export function CharacterSelectionDialog(
             <div className="overflow-y-auto" style={{ maxHeight: '200px' }}>
                 {loading ? (
                     <div className="p-3 text-black text-sm text-center">
-                        加载中...
+                        {t('loading')}
                     </div>
                 ) : error ? (
                     <div className="p-3 text-red-500 text-sm text-center">
-                        加载失败: {error.message}
+                        {t('loadFailed')}: {error.message}
                     </div>
                 ) : filteredCharacters.length === 0 ? (
                     <div
@@ -274,7 +276,7 @@ export function CharacterSelectionDialog(
                     >
                         <PlusCircle className="mb-2 w-8 h-8 text-black" />
                         <span className="text-black text-sm">
-                            {searchTerm ? '没有找到匹配的角色' : '点击添加新角色'}
+                            {searchTerm ? t('noMatchingCharacters') : t('clickToAddNewCharacter')}
                         </span>
                     </div>
                 ) : (

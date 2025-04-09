@@ -2,18 +2,23 @@
 
 import { useState, useEffect } from "react"
 import { MemoCard } from "@/components/memo-card"
-import { memoCard } from "@db/schema"
+import { memoCard, characters } from "@db/schema"
 import type { InferSelectModel } from "drizzle-orm"
 import { ResizableText } from "./resizable-text"
 import { ResizableImage } from "./resizable-image"
 import { UploadDialog } from '@/components/upload-dialog'
 import { uploadCustomTitleBackground } from '@/components/upload-dialog/server-functions'
 import { updateEpisodeMetadata } from "./server-functions/update-season"
+import { Trash } from "lucide-react"
+import { deleteMemoCard } from "../memo-card/server-functions/delete-memo-card"
 
 // 添加一个自定义CSS类名，用于禁用文本选择
 const noSelectClass = "select-none";
 // 用于去除contentEditable元素的蓝色边框
 const noOutlineClass = "focus:outline-none hover:bg-gray-100/50 px-1 rounded transition-colors";
+
+// 声明Character类型，直接基于schema定义
+export type Character = InferSelectModel<typeof characters>;
 
 // 定义 MemoCardWithMetadata 类型，包含从数据库获取的 MemoCard 和额外的元数据
 export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> {
@@ -25,15 +30,8 @@ export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> 
     metadataId: string | null
     // 这两个字段从这里移除，作为独立参数
     translatedText?: string | null
-}
-
-// 定义Character接口
-export interface Character {
-    id: string
-    name: string
-    avatarUrl: string
-    seriesId: string
-    // 根据实际需要添加更多属性
+    // 添加character字段
+    character?: Character | null
 }
 
 // 定义元素样式类型
@@ -58,7 +56,6 @@ interface TimelineProps {
     titleUrl?: string // 添加自定义标题URL
     coverAspectRatio?: number | null // 封面图片的长宽比
     titleAspectRatio?: number | null // 标题图片的长宽比
-    characters: Character[]
 }
 
 export default function Timeline({
@@ -70,11 +67,11 @@ export default function Timeline({
     titleUrl,
     coverAspectRatio,
     titleAspectRatio,
-    characters
 }: TimelineProps) {
     // 添加上传对话框状态
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const [uploadType, setUploadType] = useState<string>("customTitleUrl");
+    const [displayCards, setDisplayCards] = useState(memoCards);
 
     console.log(memoCards, "memoCards=====");
     // 添加页面级别的禁用文本选择功能
@@ -126,6 +123,17 @@ export default function Timeline({
         setUploadType(type || 'customTitleUrl');
         setUploadDialogOpen(true);
     };
+
+    async function handleDelete(id: string) {
+        setDisplayCards(prev => prev.filter(card => card.id !== id));
+
+        try {
+            await deleteMemoCard(id);
+        } catch (error) {
+            console.error('删除失败:', error);
+            // setDisplayCards(initialMemoCards);
+        }
+    }
 
     /**
      * 处理季度输入框失焦事件
@@ -209,33 +217,36 @@ export default function Timeline({
 
             {/* 右侧卡片内容区域 - 定位在右半部分居中 */}
             <div className="space-y-24 ml-auto px-4 py-10 md:pr-8 w-full md:w-1/2">
-                {memoCards.map((card, index) => {
+                {displayCards.map((card, index) => {
 
                     return (
-                        <div key={index} className="relative">
-                            {/* 卡片内容 */}
-                            <>
-                                {/* 剧集信息 */}
-                                {card.season && card.episode && (
-                                    <div className="mb-5 text-[18px] text-center tracking-[0.5px]">
-                                        第<span
-                                            contentEditable
-                                            suppressContentEditableWarning
-                                            className={noOutlineClass}
-                                            onBlur={(e) => {
-                                                const value = e.currentTarget.textContent;
-                                                handleSeasonBlur(card.metadataId || "", value);
-                                            }}
-                                        >{card.season}</span>季第<span className="p-1">{card.episode}</span>集{card.episodeTitle ? `: ${card.episodeTitle}` : ''}
-                                    </div>
-                                )}
-                                <MemoCard
-                                    {...card}
-                                    weakBorder={true}
-                                    hideCreateTime={false}
-                                    characters={characters}
-                                />
-                            </>
+                        <div key={index} className="group relative">
+                            {/* 剧集信息 */}
+                            {card.season && card.episode && (
+                                <div className="mb-5 text-[18px] text-center tracking-[0.5px]">
+                                    第<span
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        className={noOutlineClass}
+                                        onBlur={(e) => {
+                                            const value = e.currentTarget.textContent;
+                                            handleSeasonBlur(card.metadataId || "", value);
+                                        }}
+                                    >{card.season}</span>季第<span className="p-1">{card.episode}</span>集{card.episodeTitle ? `: ${card.episodeTitle}` : ''}
+                                </div>
+                            )}
+                            <button
+                                className="top-0 right-[2%] z-10 absolute opacity-0 group-hover:opacity-100 p-1 rounded-full transition-opacity duration-200"
+                                onClick={() => handleDelete(card.id)}
+                            >
+                                <Trash className="w-5 h-5" />
+                            </button>
+                            <MemoCard
+                                {...card}
+                                weakBorder={true}
+                                hideCreateTime={false}
+                                character={card.character || undefined}
+                            />
                         </div>
                     )
                 })}

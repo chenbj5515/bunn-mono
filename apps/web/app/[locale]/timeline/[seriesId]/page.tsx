@@ -147,16 +147,21 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
         kanaPronunciation: memoCard.kanaPronunciation,
         contextUrl: memoCard.contextUrl,
         rubyTranslations: memoCard.rubyTranslations,
-        
-        // 从seriesMetadata中选择需要的字段
         season: seriesMetadata.season,
         episode: seriesMetadata.episode,
         episodeTitle: seriesMetadata.episodeTitle,
+        characterName: characters.name,
+        characterDescription: characters.description,
+        characterAvatarUrl: characters.avatarUrl,
       })
       .from(memoCard)
       .leftJoin(
         seriesMetadata, 
         eq(memoCard.id, seriesMetadata.memoCardId)
+      )
+      .leftJoin(
+        characters,
+        eq(memoCard.characterId, characters.id)
       )
       .where(
         and(
@@ -170,6 +175,15 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     memoCards = memoCardsData.map(card => ({
       ...card,
       translatedText: null, // 根据需要设置翻译文本
+      character: card.characterId ? {
+        id: card.characterId,
+        name: card.characterName || '', // 确保name不为null
+        description: card.characterDescription,
+        avatarUrl: card.characterAvatarUrl,
+        createTime: new Date().toISOString(),
+        updateTime: new Date().toISOString(),
+        seriesId: seriesId
+      } : null,
     }));
 
     // 获取该剧集下的所有角色
@@ -230,7 +244,6 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     titleUrl={titleUrl}
     coverAspectRatio={coverAspectRatio}
     titleAspectRatio={titleAspectRatio}
-    characters={charactersList}
   />;
 };
 

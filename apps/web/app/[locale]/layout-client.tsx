@@ -103,15 +103,6 @@ export default function LayoutClient({
                                 prompt: translationPrompt
                             })
                         }),
-                        // fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
-                        //     method: 'POST',
-                        //     headers: {
-                        //         'Content-Type': 'application/json'
-                        //     },
-                        //     body: JSON.stringify({
-                        //         prompt: `${original_text}，给出这句话的平假名读音，注意只需要平假名读音和对应位置的标点符号。`
-                        //     })
-                        // }),
                         fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
                             method: 'POST',
                             headers: {

@@ -458,7 +458,8 @@
   "memoCard": {
     "originalText": "Original Text",
     "translation": "Translation",
-    "pronunciation": "Pronunciation"
+    "pronunciation": "Pronunciation",
+    "useCharacterAvatar": "Use character avatar"
   },
   "dictation": {
     "writeOriginalText": "Please dictate the original text"
@@ -528,5 +529,14 @@
     "titleBackgroundTitle": "Upload Title Image",
     "cancel": "Cancel",
     "applyChanges": "Apply Changes"
+  },
+  "characterSelection": {
+    "newCharacter": "New Character",
+    "enterCharacterName": "Enter character name",
+    "searchCharacter": "Search characters",
+    "loading": "Loading...",
+    "loadFailed": "Loading failed",
+    "noMatchingCharacters": "No matching characters found",
+    "clickToAddNewCharacter": "Click to add a new character"
   }
 }

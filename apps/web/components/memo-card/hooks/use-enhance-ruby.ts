@@ -6,16 +6,17 @@ import { usePathname } from "next/navigation";
 
 interface UseEnhanceRubyProps {
   originalTextRef: { current: HTMLDivElement | null };
-  rubyTranslationMap: Record<string, string>;
+  rubyTranslationRecord: Record<string, string>;
   id: string;
 }
 
 export function useEnhanceRuby({ 
   originalTextRef, 
-  rubyTranslationMap, 
+  rubyTranslationRecord, 
   id 
 }: UseEnhanceRubyProps) {
   const pathname = usePathname();
+  console.log(rubyTranslationRecord, "rubyTranslationRecord=====")
   // 跟踪当前显示的tooltip信息
   const activeTooltipRef = React.useRef<{word: string; meaning: string} | null>(null);
   // 跟踪当前活动的Ruby元素和其对应的弹窗
@@ -191,10 +192,10 @@ export function useEnhanceRuby({
       const originalWord = textNode ? textNode.textContent || '' : '';
 
       // 如果有翻译，添加悬停提示
-      if (originalWord && rubyTranslationMap[originalWord]) {
+      if (originalWord && rubyTranslationRecord[originalWord]) {
         // 确保originalWord不为undefined（添加类型安全检查）
         const word = originalWord;
-        const meaning = rubyTranslationMap[originalWord] || '';
+        const meaning = rubyTranslationRecord[originalWord] || '';
 
         // 添加数据属性
         ruby.setAttribute('data-word', word);
@@ -311,7 +312,7 @@ export function useEnhanceRuby({
       // 移除所有弹窗
       removeAllTooltips();
     };
-  }, [originalTextRef, rubyTranslationMap, id]);
+  }, [originalTextRef, rubyTranslationRecord, id]);
 
   // 样式：定义Ruby元素的悬停提示样式
   React.useEffect(() => {

@@ -26,7 +26,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     hideCreateTime?: boolean;
     width?: string | number;
     height?: string | number;
-    characters: Character[];
+    character?: Character;
 }) {
     const {
         translation,
@@ -37,7 +37,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         contextUrl,
         weakBorder = false,
         hideCreateTime = false,
-        width,
+        character,
         height,
         rubyTranslations,
         seriesId,
@@ -51,15 +51,9 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const [showCharacterDialog, setShowCharacterDialog] = React.useState(false);
 
     // 添加本地角色状态
-    const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(() => {
-        // 初始化时，如果有characterId，从characters中查找对应角色
-        if (characterId && props.characters) {
-            return props.characters.find(char => char.id === characterId) || null;
-        }
-        return null;
-    });
+    const [selectedCharacter, setSelectedCharacter] = useState<Character|null|undefined>(character);
 
-    const rubyTranslationMap = JSON.parse(rubyTranslations || '{}');
+    const rubyTranslationRecord = JSON.parse(rubyTranslations || '{}');
 
     const translationTextRef = React.useRef<HTMLDivElement>(null);
     const originalTextRef = React.useRef<HTMLDivElement>(null);
@@ -72,19 +66,9 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
 
     const cardRef = React.useRef<HTMLDivElement>(null);
 
-    // 当characters或characterId变化时更新selectedCharacter
-    useEffect(() => {
-        if (characterId && props.characters) {
-            const character = props.characters.find(char => char.id === characterId);
-            if (character) {
-                setSelectedCharacter(character);
-            }
-        }
-    }, [characterId, props.characters]);
-
     useEnhanceRuby({
         originalTextRef,
-        rubyTranslationMap,
+        rubyTranslationRecord,
         id
     });
 
@@ -123,18 +107,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     function handleOriginalTextBlur() {
         if (originalTextRef.current?.textContent && !pathname.includes('/home') && !pathname.includes('/guide')) {
             updateOriginalText(id, originalTextRef.current?.textContent?.slice(3))
-        }
-    }
-
-    function hanldeKanaFocus() {
-        prevKanaTextRef.current = kanaTextRef.current?.textContent || "";
-    }
-
-    async function handleKanaBlur() {
-        if (kanaTextRef.current?.textContent && kanaTextRef.current?.textContent !== prevKanaTextRef.current) {
-            if (!pathname.includes('/home') && !pathname.includes('/guide')) {
-                updatePronunciation(id, kanaTextRef.current?.textContent)
-            }
         }
     }
 
@@ -208,7 +180,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                        <span>上传角色头像</span>
+                        <span>{t('useCharacterAvatar')}</span>
                     </TooltipContent>
                 </Tooltip>
             );
@@ -364,12 +336,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     onSelect={handleSelectCharacter}
                 />
             )}
-
-            {/* <CharacterSelectionDialog
-                seriesId={seriesId}
-                onClose={handleCloseCharacterDialog}
-                onSelect={handleSelectCharacter}
-            /> */}
         </Card>
     );
 }

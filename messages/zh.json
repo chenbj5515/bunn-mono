@@ -457,7 +457,8 @@
     "memoCard": {
         "originalText": "原文",
         "translation": "翻译",
-        "pronunciation": "读音"
+        "pronunciation": "读音",
+        "useCharacterAvatar": "使用角色头像"
     },
     "dictation": {
         "writeOriginalText": "请默写出原文"
@@ -527,5 +528,14 @@
         "titleBackgroundTitle": "上传标题图片",
         "cancel": "取消",
         "applyChanges": "应用更改"
+    },
+    "characterSelection": {
+        "newCharacter": "新角色",
+        "enterCharacterName": "输入角色名称",
+        "searchCharacter": "搜索角色",
+        "loading": "加载中...",
+        "loadFailed": "加载失败",
+        "noMatchingCharacters": "没有找到匹配的角色",
+        "clickToAddNewCharacter": "点击添加新角色"
     }
 }
