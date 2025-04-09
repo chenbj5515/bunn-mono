@@ -27,6 +27,15 @@ export interface MemoCardWithMetadata extends InferSelectModel<typeof memoCard> 
     translatedText?: string | null
 }
 
+// 定义Character接口
+export interface Character {
+    id: string
+    name: string
+    avatarUrl: string
+    seriesId: string
+    // 根据实际需要添加更多属性
+}
+
 // 定义元素样式类型
 interface ElementStyle {
     position?: { x: number; y: number } | null;
@@ -49,6 +58,7 @@ interface TimelineProps {
     titleUrl?: string // 添加自定义标题URL
     coverAspectRatio?: number | null // 封面图片的长宽比
     titleAspectRatio?: number | null // 标题图片的长宽比
+    characters: Character[]
 }
 
 export default function Timeline({
@@ -59,7 +69,8 @@ export default function Timeline({
     coverUrl,
     titleUrl,
     coverAspectRatio,
-    titleAspectRatio
+    titleAspectRatio,
+    characters
 }: TimelineProps) {
     // 添加上传对话框状态
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -222,6 +233,7 @@ export default function Timeline({
                                     {...card}
                                     weakBorder={true}
                                     hideCreateTime={false}
+                                    characters={characters}
                                 />
                             </>
                         </div>

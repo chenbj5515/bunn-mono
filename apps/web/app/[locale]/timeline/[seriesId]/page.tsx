@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { db } from "@db/index";
-import { memoCard, series, seriesMetadata, userSeriesMaterials } from "@db/schema";
+import { memoCard, series, seriesMetadata, userSeriesMaterials, characters } from "@db/schema";
 import { and, eq } from "drizzle-orm";
 import { getSession } from '@server/lib/auth';
 import Timeline, { MemoCardWithMetadata } from '@/components/timeline';
@@ -71,6 +71,7 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
   let titleUrl = "";
   let coverAspectRatio: number | null = null;
   let titleAspectRatio: number | null = null;
+  let charactersList: Array<{id: string, name: string, description: string | null, avatarUrl: string | null}> = [];
 
   try {
     // 获取系列信息，包括基本信息和自定义封面
@@ -135,6 +136,7 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
         userId: memoCard.userId,
         platform: memoCard.platform,
         seriesId: memoCard.seriesId,
+        characterId: memoCard.characterId,
         translation: memoCard.translation,
         createTime: memoCard.createTime,
         updateTime: memoCard.updateTime,
@@ -169,6 +171,19 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
       ...card,
       translatedText: null, // 根据需要设置翻译文本
     }));
+
+    // 获取该剧集下的所有角色
+    const charactersData = await db
+      .select({
+        id: characters.id,
+        name: characters.name,
+        description: characters.description,
+        avatarUrl: characters.avatarUrl,
+      })
+      .from(characters)
+      .where(eq(characters.seriesId, seriesId));
+    
+    charactersList = charactersData;
   } catch (error) {
     console.error("获取时间线数据失败:", error);
     memoCards = [];
@@ -215,6 +230,7 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
     titleUrl={titleUrl}
     coverAspectRatio={coverAspectRatio}
     titleAspectRatio={titleAspectRatio}
+    characters={charactersList}
   />;
 };
 

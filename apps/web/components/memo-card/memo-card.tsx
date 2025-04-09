@@ -15,6 +15,9 @@ import type { InferSelectModel } from "drizzle-orm";
 import { useTranslations } from 'next-intl';
 import { RecordingControls } from "./recording-controls";
 import { useEnhanceRuby } from "./hooks/use-enhance-ruby";
+import { CharacterSelectionDialog } from "../character-selection";
+import { Character } from "../timeline";
+import { updateMemoCardCharacter } from "../timeline/server-functions/update-character";
 
 export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     onDelete?: (id: string) => void;
@@ -22,6 +25,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     hideCreateTime?: boolean;
     width?: string | number;
     height?: string | number;
+    characters: Character[];
 }) {
     const {
         translation,
@@ -35,11 +39,16 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         width,
         height,
         rubyTranslations,
+        seriesId
     } = props;
+
+    console.log(props, "props========");
 
     const t = useTranslations('memoCard');
 
     const [isFocused, setIsFocused] = React.useState(false);
+    const [isHoveringLabel, setIsHoveringLabel] = React.useState(false);
+    const [showCharacterDialog, setShowCharacterDialog] = React.useState(false);
     const rubyTranslationMap = JSON.parse(rubyTranslations || '{}');
 
     const translationTextRef = React.useRef<HTMLDivElement>(null);
@@ -107,6 +116,30 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                 updatePronunciation(id, kanaTextRef.current?.textContent)
             }
         }
+    }
+
+    function handleOpenCharacterDialog() {
+        setShowCharacterDialog(true);
+    }
+
+    function handleCloseCharacterDialog() {
+        setShowCharacterDialog(false);
+    }
+
+    const handleSelectCharacter = async (character: Character) => {
+        try {
+            if (id) {
+                const result = await updateMemoCardCharacter(id, character.id);
+                if (result.success) {
+                    console.log('角色关联更新成功');
+                } else {
+                    console.error('角色关联更新失败:', result.message);
+                }
+            }
+        } catch (error) {
+            console.error('更新角色关联出错:', error);
+        }
+        setShowCharacterDialog(false);
     }
 
     return (
@@ -206,7 +239,27 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         onBlur={handleOriginalTextBlur}
                         ref={originalTextRef}
                     >
-                        {t('originalText')}：
+                        <div 
+                            className="inline-flex relative items-center cursor-pointer"
+                            onMouseEnter={() => setIsHoveringLabel(true)}
+                            onMouseLeave={() => setIsHoveringLabel(false)}
+                            onClick={handleOpenCharacterDialog}
+                        >
+                            <span className="inline-block">{t('originalText')}：</span>
+                            {isHoveringLabel && (
+                                <div className="-top-10 left-1/2 z-50 absolute bg-white hover:bg-gray-100 shadow-md p-2 rounded-full -translate-x-[27px] cursor-pointer">
+                                    <svg 
+                                        xmlns="http://www.w3.org/2000/svg" 
+                                        className="w-5 h-5 text-gray-700" 
+                                        fill="none" 
+                                        viewBox="0 0 24 24" 
+                                        stroke="currentColor"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </div>
+                            )}
+                        </div>
                         {isFocused ? (
                             <section
                                 className={`z-[1000] rounded-lg absolute ${isFocused ? "backdrop-blur-[3px] backdrop-saturate-[180%]" : ""
@@ -249,6 +302,17 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     }
                 </div>
             </div>
+
+            {/* 角色选择弹窗 */}
+            {showCharacterDialog && seriesId && (
+                <CharacterSelectionDialog 
+                    seriesId={seriesId} 
+                    onClose={handleCloseCharacterDialog} 
+                    onSelect={handleSelectCharacter}
+                />
+            )}
         </Card>
     );
 }
+
+

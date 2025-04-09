@@ -123,6 +123,7 @@ export const memoCard = pgTable("memo_card", {
 	rubyTranslations: text("ruby_translations"),   // 存储ruby元素的翻译，JSON格式
 	platform: text('platform'),      // 内容类型：'youtube', 'nextflix series'等
 	seriesId: uuid('series_id').references(() => series.id, { onDelete: 'set null' }),          // 关联到具体内容的ID
+	characterId: uuid('character_id').references(() => characters.id, { onDelete: 'set null' }), // 关联到角色ID
 });
 
 export const userSubscription = pgTable("user_subscription", {
@@ -210,3 +211,16 @@ export const userSeriesMaterials = pgTable('user_series_materials', {
 }, (table) => [
 	unique('user_series_materials_unique').on(table.userId, table.seriesId),
 ]);
+
+// 角色表 - 存储剧集中的角色信息
+export const characters = pgTable('characters', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	name: text('name').notNull(),           // 角色名称
+	description: text('description'),       // 角色描述
+	avatarUrl: text('avatar_url'),          // 角色头像URL
+	seriesId: uuid('series_id')
+		.notNull()
+		.references(() => series.id, { onDelete: 'cascade' }), // 关联到剧集
+	createTime: timestamp("create_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updateTime: timestamp("update_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
