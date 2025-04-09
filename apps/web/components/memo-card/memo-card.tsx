@@ -41,7 +41,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         height,
         rubyTranslations,
         seriesId,
-        characterId
     } = props;
 
     const t = useTranslations('memoCard');
@@ -299,14 +298,14 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                 </div>
 
                 <div>
-                    <span className="inline-block w-11">{t('translation')}</span>：
+                    <span className={`inline-block ${selectedCharacter ? "w-11" : "w-[37px]"}`}>{t('translation')}</span>：
                     <span
                         suppressContentEditableWarning
                         contentEditable
                         ref={translationTextRef}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
-                        className="pr-[42px] pl-[6px] outline-none font-Default text-[18px] whitespace-pre-wrap"
+                        className={`pr-[42px] ${selectedCharacter ? "pl-[6px]" : ""} outline-none font-Default text-[18px] whitespace-pre-wrap`}
                     >
                         {translation}
                     </span>

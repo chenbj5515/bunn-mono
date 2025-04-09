@@ -197,7 +197,7 @@ export const ResizableImage = ({
                 left: `${position.x}px`,
                 top: `${position.y}px`,
                 width: `${size.width}px`,
-                height: `${size.height}px`,
+                height: `${aspectRatio ? size.width / aspectRatio : size.height}px`,
                 background: 'transparent',
                 zIndex: 50,
                 userSelect: 'none',

@@ -293,26 +293,26 @@ export function useEnhanceRuby({
 
     // 清理函数，移除事件监听器
     return () => {
-      rubyElements.forEach(ruby => {
-        // 使用保存的引用移除事件监听器
-        ruby.removeEventListener('click', handleClick);
-        ruby.onmouseenter = null;
-        ruby.onmouseleave = null;
+      // rubyElements.forEach(ruby => {
+      //   // 使用保存的引用移除事件监听器
+      //   ruby.removeEventListener('click', handleClick);
+      //   ruby.onmouseenter = null;
+      //   ruby.onmouseleave = null;
         
-        // 也要移除rt元素的事件监听器
-        const rtElement = ruby.querySelector('rt');
-        if (rtElement) {
-          // 这里使用空函数会导致移除失败，因为不是同一个函数引用
-          // 我们应该在外部存储showTooltip函数引用或直接不移除（因为整个ruby元素会被清理）
-          // 这里简化处理，因为页面会重新渲染，清理整个DOM，所以不需要精确移除每个事件
-          // 如果想更精确地处理，可以使用WeakMap存储每个ruby元素对应的showTooltip函数
-          // rtElement.removeEventListener('mouseenter', () => {});
-        }
-      });
-      // 移除所有弹窗
-      removeAllTooltips();
+      //   // 也要移除rt元素的事件监听器
+      //   const rtElement = ruby.querySelector('rt');
+      //   if (rtElement) {
+      //     // 这里使用空函数会导致移除失败，因为不是同一个函数引用
+      //     // 我们应该在外部存储showTooltip函数引用或直接不移除（因为整个ruby元素会被清理）
+      //     // 这里简化处理，因为页面会重新渲染，清理整个DOM，所以不需要精确移除每个事件
+      //     // 如果想更精确地处理，可以使用WeakMap存储每个ruby元素对应的showTooltip函数
+      //     // rtElement.removeEventListener('mouseenter', () => {});
+      //   }
+      // });
+      // // 移除所有弹窗
+      // removeAllTooltips();
     };
-  }, [originalTextRef, rubyTranslationRecord, id]);
+  }, []);
 
   // 样式：定义Ruby元素的悬停提示样式
   React.useEffect(() => {
