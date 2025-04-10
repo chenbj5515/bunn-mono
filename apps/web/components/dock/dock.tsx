@@ -36,7 +36,7 @@ export function Dock() {
         {
             name: "YouTube",
             icon: "/icon/youtube.png",
-            onClick: () => router.push(`/${locale}/series-list/youtube`)
+            onClick: () => router.push(`/${locale}/channels`)
         },
         {
             name: "Netflix",

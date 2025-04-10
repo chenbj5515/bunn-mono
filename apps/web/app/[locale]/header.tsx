@@ -91,7 +91,7 @@ export function LoginedHeader() {
     useAudioPermission();
     
     // 检查路径是否包含series-list或timeline
-    const onNavList = pathname.includes('series-list') || pathname.includes('timeline');
+    const onNavList = pathname.includes('series-list') || pathname.includes('timeline') || pathname.includes('channels');
 
     function handleToggle() {
         if (theme === "dark") {

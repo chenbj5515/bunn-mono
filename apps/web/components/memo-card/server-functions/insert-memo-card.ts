@@ -1,7 +1,7 @@
 "use server"
 import { getSession } from "@server/lib/auth";
 import { db } from "@db/index";
-import { memoCard, userActionLogs, series, seriesMetadata } from "@db/schema";
+import { memoCard, userActionLogs, series, seriesMetadata, channels, channelVideoMetadata } from "@db/schema";
 import { sql, eq, and } from "drizzle-orm";
 import { ContextContent } from '@/components/input-box';
 import { headers } from "next/headers";
@@ -9,6 +9,13 @@ import { headers } from "next/headers";
 // 从Netflix URL中提取watchID
 function extractNetflixWatchID(url: string): string | null {
     const regex = /netflix\.com\/watch\/(\d+)/;
+    const match = regex.exec(url);
+    return match ? match[1] as string : null;
+}
+
+// 从YouTube URL中提取videoId
+function extractYouTubeVideoID(url: string): string | null {
+    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\?]+)/;
     const match = regex.exec(url);
     return match ? match[1] as string : null;
 }
@@ -150,8 +157,10 @@ export async function insertMemoCard(
     // 默认值
     let platform: string | null = null;
     let seriesId: string | null = null;
+    let channelId: string | null = null;
     const seriesTitle = contextContent?.seriesTitle || "";
     const watchId = extractNetflixWatchID(url);
+    const youtubeVideoId = extractYouTubeVideoID(url);
 
     // 处理Netflix URL
     if (url && url.includes('netflix.com/watch')) {
@@ -215,6 +224,40 @@ export async function insertMemoCard(
             }
         }
     }
+    // 处理YouTube URL
+    else if (url && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+        if (contextContent?.channelId && contextContent?.videoId) {
+            platform = "youtube";
+            
+            try {
+                // 检查channels表中是否已存在该频道
+                const existingChannel = await db.select()
+                    .from(channels)
+                    .where(
+                        eq(channels.channelId, contextContent.channelId)
+                    )
+                    .limit(1);
+                    
+                // 如果不存在，则创建新频道记录
+                if (existingChannel.length === 0) {
+                    const [newChannel] = await db.insert(channels).values({
+                        channelId: contextContent.channelId,
+                        channelName: contextContent.channelName || "",
+                        avatarUrl: contextContent.avatarUrl || ""
+                    }).returning();
+                    
+                    if (newChannel) {
+                        channelId = newChannel.channelId;  // 使用channelId作为主键
+                    }
+                } else if (existingChannel[0]) {
+                    // 使用已存在的channel记录
+                    channelId = existingChannel[0].channelId;  // 使用channelId作为主键
+                }
+            } catch (error) {
+                console.error("处理YouTube频道信息时出错:", error);
+            }
+        }
+    }
 
     const [newMemoCard] = await db.insert(memoCard).values({
         recordFilePath: "",
@@ -236,8 +279,8 @@ export async function insertMemoCard(
         // 使用void操作符忽略Promise结果，使后续操作异步执行
         void (async () => {
             try {
-                // 确保newMemoCard存在，并且有contentId（表示这是一个剧集相关的记忆卡片）
-                if (seriesId && contextContent) {
+                // 处理Netflix系列元数据
+                if (seriesId && contextContent && platform === "netflix") {
                     // 检查是否需要添加series_metadata记录
                     if (contextContent.seriesNum && contextContent.episodeNumber) {
                         const season = parseInt(contextContent.seriesNum);
@@ -257,6 +300,17 @@ export async function insertMemoCard(
                         });
                     }
                 }
+                // 处理YouTube视频元数据
+                else if (channelId && contextContent && platform === "youtube" && contextContent.videoId) {
+                    // 向channel_video_metadata表添加记录
+                    await db.insert(channelVideoMetadata).values({
+                        channelId,
+                        memoCardId: newMemoCard.id,
+                        videoId: contextContent.videoId,
+                        videoTitle: contextContent.videoTitle || ""
+                    });
+                }
+                
                 await db.insert(userActionLogs).values({
                     userId: session.user.id,
                     actionType: "CREATE_MEMO",

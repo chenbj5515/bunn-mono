@@ -362,7 +362,8 @@
     "wordCards": "Word Cards",
     "exam": "Exam",
     "dailyReport": "Daily Report",
-    "memoCards": "Memory Cards"
+    "memoCards": "Memory Cards",
+    "channels": "Channels"
   },
   "memoCards": {
     "noDataFound": "Please enter Japanese text you're interested in",
@@ -539,5 +540,9 @@
     "loadFailed": "Loading failed",
     "noMatchingCharacters": "No matching characters found",
     "clickToAddNewCharacter": "Click to add a new character"
+  },
+  "Channels": {
+    "yourChannels": "Your YouTube Channels",
+    "noChannelsFound": "No channels found. Add a YouTube memo to see channels here."
   }
 }

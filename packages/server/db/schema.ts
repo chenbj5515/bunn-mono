@@ -224,3 +224,33 @@ export const characters = pgTable('characters', {
 	createTime: timestamp("create_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updateTime: timestamp("update_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
+
+// YouTube频道表 - 存储YouTube频道信息
+export const channels = pgTable('channels', {
+	channelId: text('channel_id').primaryKey().notNull(), // YouTube频道ID作为主键
+	channelName: text('channel_name').notNull(),          // 频道名称
+	avatarUrl: text('avatar_url'),                        // 频道头像URL
+	bannerUrl: text('banner_url'),                        // 频道顶部横幅URL
+	description: text('description'),                     // 频道描述（可选）
+	createTime: timestamp("create_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updateTime: timestamp("update_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// YouTube视频元数据表 - 存储视频信息并关联memoCard和channels
+export const channelVideoMetadata = pgTable('channel_video_metadata', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	memoCardId: uuid('memo_card_id')
+		.notNull()
+		.references(() => memoCard.id, { onDelete: 'cascade' }),
+	channelId: text('channel_id')
+		.notNull()
+		.references(() => channels.channelId, { onDelete: 'cascade' }),
+	videoId: text('video_id').notNull(),            // YouTube视频ID
+	videoTitle: text('video_title').notNull(),      // 视频标题
+	thumbnailUrl: text('thumbnail_url'),            // 视频缩略图URL
+	publishedAt: timestamp('published_at', { precision: 6, withTimezone: true, mode: 'string' }), // 视频发布时间
+	createTime: timestamp("create_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updateTime: timestamp("update_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	unique('channel_video_metadata_unique').on(table.memoCardId, table.videoId),
+]);

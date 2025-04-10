@@ -204,6 +204,44 @@ export async function captureYoutubeSubtitle() {
     return;
   }
 
+  // 获取channelId和channelName
+  let channelId = "";
+  let channelName = "";
+  let avatarUrl = "";
+  const channelElement = document.querySelector('ytd-channel-name a');
+  if (channelElement) {
+    const href = channelElement.getAttribute('href');
+    if (href) {
+      channelId = href.startsWith('/') ? href.substring(1) : href;
+    }
+    channelName = channelElement.textContent?.trim() || "";
+    
+    // 获取频道头像URL
+    const avatarElement = document.querySelector('#avatar');
+    if (avatarElement) {
+      const imgElement = avatarElement.querySelector('img');
+      if (imgElement) {
+        avatarUrl = imgElement.getAttribute('src') || "";
+      }
+    }
+  }
+
+  // 获取videoTitle
+  let videoTitle = "";
+  const titleElement = document.querySelector('#title yt-formatted-string');
+  if (titleElement) {
+    const titleAttr = titleElement.getAttribute('title');
+    if (titleAttr) {
+      // 移除类似【アニメ】【コント】的括号内容
+      videoTitle = titleAttr.replace(/【[^】]*】/g, '').trim();
+    }
+  }
+
+  // 获取videoId
+  let videoId = "";
+  const urlParams = new URLSearchParams(window.location.search);
+  videoId = urlParams.get('v') || "";
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -232,7 +270,12 @@ export async function captureYoutubeSubtitle() {
 
               const subtitleData = {
                 url: currentUrl.toString(),
-                text: subtitleText
+                text: subtitleText,
+                channelId: channelId,
+                channelName: channelName,
+                videoTitle: videoTitle,
+                videoId: videoId,
+                avatarUrl: avatarUrl,
               };
 
               await navigator.clipboard.writeText(JSON.stringify(subtitleData));

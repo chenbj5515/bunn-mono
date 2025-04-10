@@ -12,7 +12,7 @@ export default function TermsOfService() {
 
                 <h2 className="mb-2 text-[#5a5959] text-xl">{t('terms.subtitle')}</h2>
 
-                <p className="mb-12 text-[#5a5959] text-gray-600">
+                <p className="mb-12 text-[#5a5959]">
                     {t('terms.lastUpdated')} March 1, 2025
                 </p>
 

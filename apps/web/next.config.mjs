@@ -12,6 +12,11 @@ const nextConfig = {
                 hostname: 'i2ggfjkruhmrnyqd.public.blob.vercel-storage.com',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'yt3.ggpht.com',
+                pathname: '/**',
+            },
         ],
     },
     experimental: {

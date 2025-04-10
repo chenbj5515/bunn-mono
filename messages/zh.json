@@ -358,10 +358,12 @@
         "logout": "退出登录",
         "latest": "最新",
         "random": "随机",
-        "wordCards": "单词本",
+        "wordCards": "单词卡片",
         "exam": "考试",
         "dailyReport": "每日报告",
-        "memoCards": "记忆卡片"
+        "memoCards": "记忆卡片",
+        "channels": "频道",
+        "settings": "设置"
     },
     "memoCards": {
         "noDataFound": "请输入您感兴趣的日语文本",
@@ -536,7 +538,11 @@
         "searchCharacter": "搜索角色",
         "loading": "加载中...",
         "loadFailed": "加载失败",
-        "noMatchingCharacters": "没有找到匹配的角色",
+        "noMatchingCharacters": "未找到匹配的角色",
         "clickToAddNewCharacter": "点击添加新角色"
+    },
+    "Channels": {
+        "yourChannels": "你的YouTube频道",
+        "noChannelsFound": "未找到频道。添加YouTube笔记以在此处查看频道。"
     }
 }

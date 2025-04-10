@@ -14,6 +14,11 @@ export interface ContextContent {
     seriesNum?: string;
     episodeNumber?: string;
     episodeTitle?: string;
+    channelId?: string;
+    channelName?: string;
+    videoId?: string;
+    videoTitle?: string;
+    avatarUrl?: string;
 }
 
 export function InputBox() {

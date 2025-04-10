@@ -9,7 +9,7 @@ import {
 } from "ui/components/dropdown-menu";
 import { User } from "@/popup/app";
 import { ChevronRight } from "lucide-react";
-import { client } from '@server/lib/api-client';
+// import { client } from '@server/lib/api-client';
 import api from '@/utils/api';
 
 interface UserMenuProps {

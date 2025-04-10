@@ -81,8 +81,6 @@ const SeriesListPage = async ({ params }: SeriesListPageProps) => {
     seriesList = []
   }
 
-  console.log(seriesList, "seriesList=====");
-
   // 4. 将数据传递给客户端组件
   return <SeriesListClient posterImages={seriesList} />
 }
