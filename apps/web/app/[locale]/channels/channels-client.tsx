@@ -1,5 +1,5 @@
 "use client";
-import { FC, useState, useEffect, useRef } from 'react';
+import { FC, useState, useEffect, useRef, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
@@ -14,27 +14,28 @@ export interface Channel {
 
 interface ChannelsClientProps {
     channels: Channel[]; // 接收来自服务器组件的频道数据
+    savedPositions: Record<string, { x: number, y: number }>;
 }
 
-const ChannelsClient: FC<ChannelsClientProps> = ({ channels }) => {
+const ChannelsClient: FC<ChannelsClientProps> = ({ channels, savedPositions }): ReactNode => {
     const router = useRouter();
     const pathname = usePathname();
     const t = useTranslations('Channels');
     
     // 拖拽状态
-    const [positions, setPositions] = useState<Record<string, { x: number, y: number }>>({});
+    const [positions, setPositions] = useState<Record<string, { x: number, y: number }>>(savedPositions);
     const [dragging, setDragging] = useState<string | null>(null);
     const dragOffset = useRef<{ x: number, y: number } | null>(null);
     const isDraggingRef = useRef<boolean>(false);
     
-    // 初始化位置 - 所有头像居中
-    useEffect(() => {
-        const initialPositions: Record<string, { x: number, y: number }> = {};
-        channels.forEach(channel => {
-            initialPositions[channel.channelId] = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-        });
-        setPositions(initialPositions);
-    }, [channels]);
+    // 保存位置到cookie
+    const savePositionsToCookie = (newPositions: Record<string, { x: number, y: number }>) => {
+        try {
+            document.cookie = `channel_positions=${JSON.stringify(newPositions)}; path=/; max-age=31536000`; // 有效期一年
+        } catch (error) {
+            console.error("Failed to save positions to cookie:", error);
+        }
+    };
     
     // 处理点击事件 - 导航到频道页面
     const handleChannelClick = (channelId: string) => {
@@ -84,6 +85,10 @@ const ChannelsClient: FC<ChannelsClientProps> = ({ channels }) => {
         
         const handleMouseUp = () => {
             setDragging(null);
+            
+            // 保存当前位置到cookie
+            savePositionsToCookie(positions);
+            
             // 延迟重置拖动状态，确保点击事件处理正确
             setTimeout(() => {
                 isDraggingRef.current = false;
@@ -99,7 +104,7 @@ const ChannelsClient: FC<ChannelsClientProps> = ({ channels }) => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [dragging]);
+    }, [dragging, positions]);
     
     return (
         <div className="relative w-full h-screen overflow-hidden">
