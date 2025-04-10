@@ -107,12 +107,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         }
     }
 
-    function handleOriginalTextBlur() {
-        if (originalTextRef.current?.textContent && !pathname.includes('/home') && !pathname.includes('/guide')) {
-            updateOriginalText(id, originalTextRef.current?.textContent?.slice(3))
-        }
-    }
-
     function handleOpenCharacterDialog() {
         setShowCharacterDialog(true);
     }

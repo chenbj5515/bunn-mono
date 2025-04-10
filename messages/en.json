@@ -459,7 +459,8 @@
     "originalText": "Original Text",
     "translation": "Translation",
     "pronunciation": "Pronunciation",
-    "useCharacterAvatar": "Use character avatar"
+    "useCharacterAvatar": "Use character avatar",
+    "addToDictionary": "add to dictionary"
   },
   "dictation": {
     "writeOriginalText": "Please dictate the original text"

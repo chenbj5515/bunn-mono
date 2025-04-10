@@ -1,5 +1,5 @@
 "use client"
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { updateOriginalText } from "./server-functions";
 import { Character } from "../timeline";
@@ -142,36 +142,7 @@ export function OriginalText({
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [activeTooltip, id, pathname]);
-
-    // 监听点击事件，点击其他区域关闭tooltip
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            // 如果点击的不是tooltip或ruby元素，则关闭tooltip
-            if (activeTooltip) {
-                const tooltipElement = document.querySelector('[data-ruby-tooltip="true"]');
-                if (tooltipElement && !tooltipElement.contains(event.target as Node)) {
-                    const rubyElements = document.querySelectorAll('ruby');
-                    let clickedOnRuby = false;
-
-                    rubyElements.forEach(ruby => {
-                        if (ruby.contains(event.target as Node)) {
-                            clickedOnRuby = true;
-                        }
-                    });
-
-                    if (!clickedOnRuby) {
-                        setActiveTooltip(null);
-                    }
-                }
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [activeTooltip]);
+    }, []);
 
     // 监听鼠标移动事件，当鼠标不在tooltip或Ruby元素上时关闭tooltip
     useEffect(() => {
@@ -258,6 +229,7 @@ export function OriginalText({
 
     // 递归渲染KanaPronunciation的JSX
     const renderKanaPronunciation = (data: KanaPronunciationData | null) => {
+        console.log("data=====")
         if (!data) return null;
 
         if (data.tag === 'ruby') {
@@ -296,6 +268,11 @@ export function OriginalText({
         return null;
     };
 
+    // 使用useMemo缓存渲染结果
+    const memoizedRenderedContent = useMemo(() => {
+        return renderKanaPronunciation(rubyOriginalTextRecord);
+    }, [selectedCharacter]);
+
     return (
         <div ref={containerRef} className="relative w-[calc(100%-42px)]">
             <div
@@ -311,7 +288,7 @@ export function OriginalText({
                             }  w-[101%] h-[105%] -left-[4px] -top-[2px]`}
                     ></section>
                 ) : null}
-                {renderKanaPronunciation(rubyOriginalTextRecord)}
+                {memoizedRenderedContent}
             </div>
 
             {/* 单词Tooltip */}
@@ -329,8 +306,8 @@ export function OriginalText({
                 >
                     <div className="flex flex-col gap-3">
                         <div className="flex flex-col gap-1">
-                            <div>語句: {activeTooltip.word}</div>
-                            <div>意味: {activeTooltip.meaning}</div>
+                            <div>{t('originalText')}: {activeTooltip.word}</div>
+                            <div>{t('translation')}: {activeTooltip.meaning}</div>
                         </div>
                         <button
                             className={`hover:shadow-neumorphic-button-hover w-full bg-white border border-gray-200 rounded p-2 text-sm cursor-pointer transition-all duration-200 h-9 relative ${isAddButtonActive ? 'shadow-neumorphic-button-hover' : 'shadow-neumorphic'}`}
@@ -338,7 +315,7 @@ export function OriginalText({
                         >
                             <div className="relative flex justify-center items-center w-full h-full">
                                 <span className="top-1/4 left-[16%] absolute text-gray-600 text-xl -translate-y-1/2">⎵</span>
-                                <span className="top-1/2 right-[13%] absolute -translate-y-1/2">单語帳に追加</span>
+                                <span className="top-1/2 right-[13%] absolute -translate-y-1/2">{t('addToDictionary')}</span>
                             </div>
                         </button>
                     </div>

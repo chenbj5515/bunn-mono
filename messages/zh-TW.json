@@ -459,7 +459,8 @@
         "originalText": "原文",
         "translation": "翻譯",
         "pronunciation": "讀音",
-        "useCharacterAvatar": "使用角色頭像"
+        "useCharacterAvatar": "使用角色頭像",
+        "addToDictionary": "添加到單字本"
     },
     "dictation": {
         "writeOriginalText": "請默寫出原文"

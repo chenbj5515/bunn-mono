@@ -23,9 +23,10 @@ export default function LayoutClient({
     const setLocalCard = useSetAtom(localCardAtom);
     const urlRef = useRef<string>("");
     const contextContentRef = useRef<any>(null);
+    const targetLocale = locale === 'zh' ? '中文简体' : locale === 'zh-TW' ? '繁体中文' : '英文';
 
     async function handleAllDone(original_text: string, translation: string, kana: string, context_url: string, contextContent: any) {
-        const record = await insertMemoCard(original_text, translation, kana, context_url, contextContent);
+        const record = await insertMemoCard(original_text, translation, kana, context_url, contextContent, targetLocale);
 
         if (record) {
             setLocalCard({
@@ -88,8 +89,6 @@ export default function LayoutClient({
                 .trim(); // 去除首尾空格
             try {
                 let translationPrompt;
-
-                const targetLocale = locale === 'zh' ? '中文简体' : locale === 'zh-TW' ? '繁体中文' : '英文';
 
                 translationPrompt = `${original_text}，给出这句话的${targetLocale}翻译，注意一定要${targetLocale}，不要返回翻译结果以外的任何内容。`;
 

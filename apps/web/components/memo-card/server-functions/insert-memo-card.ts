@@ -50,7 +50,8 @@ function extractRubyItemsServer(pronunciationData: string): RubyItem[] {
 async function translateRubyItemsServer(
     originalText: string,
     rubyItems: RubyItem[],
-    cookieHeader: string
+    cookieHeader: string,
+    targetLocale: string
 ): Promise<Record<string, string>> {
     // 如果没有Ruby元素，返回空对象
     if (rubyItems.length === 0) {
@@ -59,7 +60,7 @@ async function translateRubyItemsServer(
     
     // 构建请求文本
     const requestText = `
-        在下面句子的上下文中，请翻译以下单词到中文：
+        在下面句子的上下文中，请翻译以下单词到${targetLocale}，注意翻译结果要是在上下文中的意思：
 
         句子: ${originalText}
 
@@ -68,8 +69,8 @@ async function translateRubyItemsServer(
 
         请以JSON格式返回每个单词的中文翻译，格式如下：
         {
-        "单词1": "翻译1",
-        "单词2": "翻译2"
+            "单词1": "翻译1",
+            "单词2": "翻译2"
         }
     `;
 
@@ -119,7 +120,8 @@ export async function insertMemoCard(
     translation: string,
     pronunciation: string,
     url: string,
-    contextContent: ContextContent | null
+    contextContent: ContextContent | null,
+    targetLocale: string
 ) {
     const session = await getSession();
     const headersList = await headers();
@@ -136,7 +138,7 @@ export async function insertMemoCard(
             const rubyItems = extractRubyItemsServer(pronunciation);
             console.log(rubyItems, "rubyItems=====")
             if (rubyItems.length > 0) {
-                const translations = await translateRubyItemsServer(originalText, rubyItems, cookieHeader);
+                const translations = await translateRubyItemsServer(originalText, rubyItems, cookieHeader, targetLocale);
                 if (Object.keys(translations).length > 0) {
                     rubyTranslations = JSON.stringify(translations);
                 }

@@ -458,7 +458,8 @@
         "originalText": "原文",
         "translation": "翻译",
         "pronunciation": "读音",
-        "useCharacterAvatar": "使用角色头像"
+        "useCharacterAvatar": "使用角色头像",
+        "addToDictionary": "添加到单词本"
     },
     "dictation": {
         "writeOriginalText": "请默写出原文"
