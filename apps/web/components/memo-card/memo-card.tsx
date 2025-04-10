@@ -19,21 +19,8 @@ import { Character } from "../timeline";
 import { updateMemoCardCharacter } from "../timeline/server-functions/update-character";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/components/tooltip";
 import { insertWordCard } from "./server-functions/insert-word-card";
-
-// 防抖函数
-const debounce = <F extends (...args: any[]) => any>(func: F, wait: number) => {
-    let timeout: ReturnType<typeof setTimeout> | null = null;
-    
-    return (...args: Parameters<F>) => {
-        if (timeout) {
-            clearTimeout(timeout);
-        }
-        
-        timeout = setTimeout(() => {
-            func(...args);
-        }, wait);
-    };
-};
+import { ContextButton } from "./context-button";
+import { OriginalText } from "./original-text";
 
 type KanaPronunciationData = {
     tag: string;
@@ -70,23 +57,12 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const [isFocused, setIsFocused] = React.useState(false);
     const [isHoveringLabel, setIsHoveringLabel] = React.useState(false);
     const [showCharacterDialog, setShowCharacterDialog] = React.useState(false);
-    
-    // 添加tooltip悬停状态
-    // const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
 
     // 添加本地角色状态
-    const [selectedCharacter, setSelectedCharacter] = useState<Character|null|undefined>(character);
-    
-    // 当前显示的tooltip相关状态
-    const [activeTooltip, setActiveTooltip] = useState<{word: string; meaning: string; position: {top: number; left: number}} | null>(null);
-    
-    // console.log(rubyTranslations, "rubyTranslations=====")
-    // 跟踪按钮按下状态
-    const [isAddButtonActive, setIsAddButtonActive] = useState(false);
+    const [selectedCharacter, setSelectedCharacter] = useState<Character | null | undefined>(character);
 
     // 解析JSON格式的rubyTranslations
     const rubyOriginalTextRecord = kanaPronunciation ? JSON.parse(kanaPronunciation.replace(/^```json|```$/g, '')) : {};
-
     const rubyTranslationRecord = rubyTranslations ? JSON.parse(rubyTranslations) : {};
 
     const translationTextRef = useRef<HTMLDivElement>(null);
@@ -95,151 +71,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const pathname = usePathname();
 
     const setCardId = useSetAtom(cardIdAtom);
-
     const cardRef = useRef<HTMLDivElement>(null);
-
-    // 处理Ruby元素点击，播放发音
-    const handleRubyClick = (text: string) => {
-        speakText(text, {
-            voiceName: "ja-JP-NanamiNeural",
-        });
-    };
-
-    // 添加单词到单词本
-    const handleAddToDictionary = async (word: string, meaning: string) => {
-        try {
-            if (!pathname.includes('/home') && !pathname.includes('/guide')) {
-                const result = await insertWordCard(word, meaning, id);
-                if (result instanceof Error) {
-                    throw result;
-                }
-                console.log('单词添加成功');
-            }
-        } catch (error) {
-            console.error('添加单词失败', error);
-        } finally {
-            // 无论成功失败都关闭tooltip
-            setActiveTooltip(null);
-        }
-    };
-
-    // 显示单词tooltip
-    const showTooltip = (word: string, meaning: string, event: React.MouseEvent) => {
-        const element = event.currentTarget as HTMLElement;
-        const rect = element.getBoundingClientRect();
-        
-        // 获取Card元素的位置信息
-        const cardRect = cardRef.current?.getBoundingClientRect();
-        
-        if (cardRect) {
-            // 计算相对于Card的相对位置
-            const relativeTop = rect.bottom - cardRect.top;
-            const relativeLeft = rect.left - cardRect.left;
-            
-            // 考虑滚动位置，但使用相对定位
-            setActiveTooltip({
-                word,
-                meaning,
-                position: {
-                    top: relativeTop, // 添加小偏移，让tooltip不要紧贴元素
-                    left: relativeLeft
-                }
-            });
-        }
-    };
-
-    // 监听键盘事件，按空格键快捷添加单词
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.code === 'Space' && activeTooltip) {
-                e.preventDefault(); // 防止页面滚动
-                setIsAddButtonActive(true);
-            }
-        };
-        
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.code === 'Space' && activeTooltip) {
-                e.preventDefault();
-                setIsAddButtonActive(false);
-                handleAddToDictionary(activeTooltip.word, activeTooltip.meaning);
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
-        };
-    }, [activeTooltip]);
-
-    // 监听点击事件，点击其他区域关闭tooltip
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            // 如果点击的不是tooltip或ruby元素，则关闭tooltip
-            if (activeTooltip) {
-                const tooltipElement = document.querySelector('[data-ruby-tooltip="true"]');
-                if (tooltipElement && !tooltipElement.contains(event.target as Node)) {
-                    const rubyElements = document.querySelectorAll('ruby');
-                    let clickedOnRuby = false;
-                    
-                    rubyElements.forEach(ruby => {
-                        if (ruby.contains(event.target as Node)) {
-                            clickedOnRuby = true;
-                        }
-                    });
-                    
-                    if (!clickedOnRuby) {
-                        setActiveTooltip(null);
-                    }
-                }
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [activeTooltip]);
-
-    // 监听鼠标移动事件，当鼠标不在tooltip或Ruby元素上时关闭tooltip
-    useEffect(() => {
-        const checkMousePosition = (event: MouseEvent) => {
-            if (activeTooltip) {
-                const tooltipElement = document.querySelector('[data-ruby-tooltip="true"]');
-                const targetElement = document.elementFromPoint(event.clientX, event.clientY);
-                
-                if (!targetElement) return;
-                
-                // 检查鼠标是否在tooltip内
-                let isOverTooltip = tooltipElement?.contains(targetElement);
-                
-                // 检查鼠标是否在任何Ruby元素上
-                let isOverRuby = false;
-                const rubyElements = document.querySelectorAll('ruby');
-                
-                rubyElements.forEach(ruby => {
-                    if (ruby.contains(targetElement)) {
-                        isOverRuby = true;
-                    }
-                });
-                
-                // 如果鼠标既不在tooltip上也不在任何ruby元素上，则关闭tooltip
-                if (!isOverTooltip && !isOverRuby) {
-                    setActiveTooltip(null);
-                }
-            }
-        };
-        
-        // 使用防抖函数包装事件处理程序，30ms 的延迟可以提高性能
-        const debouncedCheckMousePosition = debounce(checkMousePosition, 30);
-        
-        document.addEventListener('mousemove', debouncedCheckMousePosition);
-        return () => {
-            document.removeEventListener('mousemove', debouncedCheckMousePosition);
-        };
-    }, [activeTooltip]);
 
     function handleBlurChange(type: string) {
         setIsFocused(type === "blur" ? false : true);
@@ -311,93 +143,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         setShowCharacterDialog(false);
     }
 
-    // 递归渲染KanaPronunciation的JSX
-    const renderKanaPronunciation = (data: KanaPronunciationData | null) => {
-        if (!data) return null;
-        
-        // console.log(data, "data=====")
-        if (data.tag === 'ruby') {
-            const hasTranslation = rubyTranslationRecord[data.text || ''];
-            // console.log(rubyTranslationRecord, hasTranslation, "hasTranslation=====")
-            return (
-                <ruby
-                    key={Math.random()}
-                    onClick={() => handleRubyClick(data.rt || data.text || '')}
-                    onMouseEnter={hasTranslation ? 
-                        (e) => showTooltip(data.text || '', rubyTranslationRecord[data.text || ''], e) : 
-                        undefined
-                    }
-                    onMouseLeave={() => { console.log("onMouseLeave"); setActiveTooltip(null)}}
-                    className={`relative border-b border-dotted border-gray-500 z-[999] cursor-pointer ${hasTranslation ? 'has-translation' : ''}`}
-                >
-                    {data.text}
-                    <rt>{data.rt}</rt>
-                </ruby>
-            );
-        }
-        
-        if (data.tag === 'span' && data.children) {
-            return (
-                <span>
-                    {data.children.map((child, index) => {
-                        if (typeof child === 'string') {
-                            return <React.Fragment key={index}>{child}</React.Fragment>;
-                        } else {
-                            return renderKanaPronunciation(child);
-                        }
-                    })}
-                </span>
-            );
-        }
-        
-        return null;
-    };
-
-    // 渲染原始文本标签或角色头像
-    const renderOriginalTextLabel = () => {
-        if (selectedCharacter) {
-            return (
-                <div
-                    className={`inline-flex relative items-center cursor-pointer`}
-                    onClick={handleOpenCharacterDialog}
-                >
-                    <span className="flex flex-col">
-                        <div className="relative">
-                            <img
-                                src={selectedCharacter.avatarUrl || '/placeholder-avatar.png'}
-                                alt={selectedCharacter.name}
-                                className="inline-block mr-1 rounded-full w-10 h-10 object-cover"
-                                onError={(e) => {
-                                    // 图片加载失败时使用占位图
-                                    (e.target as HTMLImageElement).src = '/placeholder-avatar.png';
-                                }}
-                            />
-                            <span className="-top-5 left-[45%] absolute text-gray-600 text-xs whitespace-nowrap -translate-x-1/2">
-                                {selectedCharacter.name}
-                            </span>
-                        </div>
-                    </span>
-                </div>
-            );
-        } else {
-            return (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div
-                            className="inline-flex relative items-center cursor-pointer"
-                            onClick={handleOpenCharacterDialog}
-                        >
-                            <span className="inline-block whitespace-nowrap">{t('originalText')}</span>
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <span>{t('useCharacterAvatar')}</span>
-                    </TooltipContent>
-                </Tooltip>
-            );
-        }
-    };
-
     return (
         <Card
             ref={cardRef}
@@ -412,100 +157,17 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     {createTime ? getTimeAgo(createTime.toString()) : ""}
                 </div>
             )}
-            {/* 朗読ボタン */}
-            {contextUrl ? (
-                <>
-                    {contextUrl.includes("youtube") || contextUrl.includes("netflix") ? (
-                        <a
-                            href={contextUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`shadow-neumorphic hover:shadow-neumorphic-button-hover top-2 right-2 absolute flex justify-center items-center dark:bg-bgDark dark:shadow-none border border-solid rounded-[50%] w-[54px] h-[54px] cursor-pointer`}
-                        >
-                            {
-                                contextUrl.includes("youtube") ? (
-                                    <div className="relative flex justify-center items-center w-[27px] h-5 overflow-hidden">
-                                        <Image
-                                            src="https://www.gstatic.com/youtube/img/branding/youtubelogo/svg/youtubelogo.svg"
-                                            alt="read icon"
-                                            width={16}
-                                            height={20}
-                                            className="left-[25px] w-4 scale-[4.5]"
-                                            style={{ position: 'relative' }}
-                                        />
-                                    </div>
-                                ) : (
-                                    <Image
-                                        src="/icon/netflix-n.png"
-                                        alt="read icon"
-                                        width={24}
-                                        height={24}
-                                        className="w-6 overflow-hidden"
-                                    />
-                                )
-                            }
-                        </a>
-                    ) : (
-                        <>
-                            <div className="group top-2 right-2 absolute">
-                                <div className="relative pb-[68px] w-[54px]">
-                                    <div
-                                        className={`shadow-neumorphic hover:shadow-neumorphic-button-hover z-10 relative flex justify-center items-center bg-white dark:bg-bgDark dark:shadow-none border-solid rounded-full w-[54px] h-[54px] transition-all duration-300 cursor-pointer`}
-                                        onClick={handlePlayBtn}
-                                    >
-                                        <Image
-                                            src="/icon/play-audio.svg"
-                                            alt="play audio"
-                                            width={24}
-                                            height={20}
-                                            className="w-6 h-5"
-                                        />
-                                    </div>
-                                    <div
-                                        className={`mt-2 cursor-pointer shadow-neumorphic hover:shadow-neumorphic-button-hover top-0 left-0 absolute flex justify-center items-center bg-white opacity-0 group-hover:opacity-100 rounded-full w-[54px] h-[54px] transition-all group-hover:translate-y-14 duration-300`}
-                                        onClick={() => window.open(contextUrl, "_blank")}
-                                    >
-                                        <ExternalLink className="w-5 h-5" />
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </>
-            ) : (
-                <div
-                    className={`shadow-neumorphic top-2 right-2 absolute dark:bg-bgDark dark:shadow-none border ${weakBorder ? 'border-gray-200' : ''} border-solid rounded-[50%] w-12 h-12 cursor-pointer play-button-bg`}
-                    onClick={handlePlayBtn}
-                >
-                    <Image
-                        src="/icon/play-audio.svg"
-                        alt="play audio"
-                        width={24}
-                        height={20}
-                        className="top-[50%] left-[50%] absolute w-6 h-5 -translate-x-1/2 -translate-y-1/2"
-                    />
-                </div>
-            )}
+            <ContextButton contextUrl={contextUrl} handlePlayBtn={handlePlayBtn} weakBorder={weakBorder} />
             <div className="flex flex-col justify-between h-full card-content" style={{ minHeight: '420px' }}>
-                <div>
-                    <div
-                        suppressContentEditableWarning
-                        className={`relative flex items-center outline-none w-[calc(100%-42px)] ${selectedCharacter ? "items-center" : "items-baseline"}`}
-                        onBlur={handleOriginalTextBlur}
-                        ref={originalTextRef}
-                    >
-                        {renderOriginalTextLabel()}：
-                        {isFocused ? (
-                            <section
-                                className={`z-[1000] rounded-lg absolute ${isFocused ? "backdrop-blur-[3px] backdrop-saturate-[180%]" : ""
-                                    }  w-[101%] h-[105%] -left-[4px] -top-[2px]`}
-                            ></section>
-                        ) : null}
-                        <span className="original-text">
-                            {renderKanaPronunciation(rubyOriginalTextRecord)}
-                        </span>
-                    </div>
-                </div>
+                <OriginalText 
+                    selectedCharacter={selectedCharacter}
+                    isFocused={isFocused}
+                    originalTextRef={originalTextRef}
+                    rubyOriginalTextRecord={rubyOriginalTextRecord}
+                    rubyTranslationRecord={rubyTranslationRecord}
+                    id={id}
+                    onOpenCharacterDialog={handleOpenCharacterDialog}
+                />
 
                 <div>
                     <span className={`inline-block ${selectedCharacter ? "w-11" : "w-[37px]"}`}>{t('translation')}</span>：
@@ -537,39 +199,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                 </div>
             </div>
 
-            {/* 单词Tooltip */}
-            {activeTooltip && (
-                <div 
-                    className="z-[1000] absolute bg-white shadow-md p-3 border-gray-100 border-t-2 rounded-lg min-w-[200px]" 
-                    data-ruby-tooltip="true"
-                    style={{
-                        top: `${activeTooltip.position.top}px`,
-                        left: `${activeTooltip.position.left}px`,
-                        maxWidth: '90%',
-                        transformOrigin: 'top left',
-                        animation: 'fadeIn 0.15s ease-out'
-                    }}
-                >
-                    <div className="flex flex-col gap-3">
-                        <div className="flex flex-col gap-1">
-                            <div>語句: {activeTooltip.word}</div>
-                            <div>意味: {activeTooltip.meaning}</div>
-                        </div>
-                        <button 
-                            className={`hover:shadow-neumorphic-button-hover w-full bg-white border border-gray-200 rounded p-2 text-sm cursor-pointer transition-all duration-200 h-9 relative ${
-                                isAddButtonActive ? 'shadow-neumorphic-button-hover' : 'shadow-neumorphic'
-                            }`}
-                            onClick={() => handleAddToDictionary(activeTooltip.word, activeTooltip.meaning)}
-                        >
-                            <div className="relative flex justify-center items-center w-full h-full">
-                                <span className="top-1/4 left-[16%] absolute text-gray-600 text-xl -translate-y-1/2">⎵</span>
-                                <span className="top-1/2 right-[13%] absolute -translate-y-1/2">单語帳に追加</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            )}
-
             {/* 角色选择弹窗 */}
             {showCharacterDialog && seriesId && (
                 <CharacterSelectionDialog
@@ -581,5 +210,3 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         </Card>
     );
 }
-
-
