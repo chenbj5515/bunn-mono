@@ -20,6 +20,21 @@ import { updateMemoCardCharacter } from "../timeline/server-functions/update-cha
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/components/tooltip";
 import { insertWordCard } from "./server-functions/insert-word-card";
 
+// 防抖函数
+const debounce = <F extends (...args: any[]) => any>(func: F, wait: number) => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    
+    return (...args: Parameters<F>) => {
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        
+        timeout = setTimeout(() => {
+            func(...args);
+        }, wait);
+    };
+};
+
 type KanaPronunciationData = {
     tag: string;
     children?: (string | { tag: string; text: string; rt: string })[];
@@ -55,6 +70,9 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const [isFocused, setIsFocused] = React.useState(false);
     const [isHoveringLabel, setIsHoveringLabel] = React.useState(false);
     const [showCharacterDialog, setShowCharacterDialog] = React.useState(false);
+    
+    // 添加tooltip悬停状态
+    // const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
 
     // 添加本地角色状态
     const [selectedCharacter, setSelectedCharacter] = useState<Character|null|undefined>(character);
@@ -62,7 +80,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     // 当前显示的tooltip相关状态
     const [activeTooltip, setActiveTooltip] = useState<{word: string; meaning: string; position: {top: number; left: number}} | null>(null);
     
-    console.log(activeTooltip, "activeTooltip=====")
+    // console.log(rubyTranslations, "rubyTranslations=====")
     // 跟踪按钮按下状态
     const [isAddButtonActive, setIsAddButtonActive] = useState(false);
 
@@ -110,14 +128,24 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         const element = event.currentTarget as HTMLElement;
         const rect = element.getBoundingClientRect();
         
-        setActiveTooltip({
-            word,
-            meaning,
-            position: {
-                top: rect.bottom + window.scrollY,
-                left: rect.left + window.scrollX
-            }
-        });
+        // 获取Card元素的位置信息
+        const cardRect = cardRef.current?.getBoundingClientRect();
+        
+        if (cardRect) {
+            // 计算相对于Card的相对位置
+            const relativeTop = rect.bottom - cardRect.top;
+            const relativeLeft = rect.left - cardRect.left;
+            
+            // 考虑滚动位置，但使用相对定位
+            setActiveTooltip({
+                word,
+                meaning,
+                position: {
+                    top: relativeTop, // 添加小偏移，让tooltip不要紧贴元素
+                    left: relativeLeft
+                }
+            });
+        }
     };
 
     // 监听键盘事件，按空格键快捷添加单词
@@ -172,6 +200,44 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [activeTooltip]);
+
+    // 监听鼠标移动事件，当鼠标不在tooltip或Ruby元素上时关闭tooltip
+    useEffect(() => {
+        const checkMousePosition = (event: MouseEvent) => {
+            if (activeTooltip) {
+                const tooltipElement = document.querySelector('[data-ruby-tooltip="true"]');
+                const targetElement = document.elementFromPoint(event.clientX, event.clientY);
+                
+                if (!targetElement) return;
+                
+                // 检查鼠标是否在tooltip内
+                let isOverTooltip = tooltipElement?.contains(targetElement);
+                
+                // 检查鼠标是否在任何Ruby元素上
+                let isOverRuby = false;
+                const rubyElements = document.querySelectorAll('ruby');
+                
+                rubyElements.forEach(ruby => {
+                    if (ruby.contains(targetElement)) {
+                        isOverRuby = true;
+                    }
+                });
+                
+                // 如果鼠标既不在tooltip上也不在任何ruby元素上，则关闭tooltip
+                if (!isOverTooltip && !isOverRuby) {
+                    setActiveTooltip(null);
+                }
+            }
+        };
+        
+        // 使用防抖函数包装事件处理程序，30ms 的延迟可以提高性能
+        const debouncedCheckMousePosition = debounce(checkMousePosition, 30);
+        
+        document.addEventListener('mousemove', debouncedCheckMousePosition);
+        return () => {
+            document.removeEventListener('mousemove', debouncedCheckMousePosition);
         };
     }, [activeTooltip]);
 
@@ -252,7 +318,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         // console.log(data, "data=====")
         if (data.tag === 'ruby') {
             const hasTranslation = rubyTranslationRecord[data.text || ''];
-            console.log(rubyTranslationRecord, hasTranslation, "hasTranslation=====")
+            // console.log(rubyTranslationRecord, hasTranslation, "hasTranslation=====")
             return (
                 <ruby
                     key={Math.random()}
@@ -261,6 +327,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                         (e) => showTooltip(data.text || '', rubyTranslationRecord[data.text || ''], e) : 
                         undefined
                     }
+                    onMouseLeave={() => { console.log("onMouseLeave"); setActiveTooltip(null)}}
                     className={`relative border-b border-dotted border-gray-500 z-[999] cursor-pointer ${hasTranslation ? 'has-translation' : ''}`}
                 >
                     {data.text}
@@ -478,6 +545,8 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     style={{
                         top: `${activeTooltip.position.top}px`,
                         left: `${activeTooltip.position.left}px`,
+                        maxWidth: '90%',
+                        transformOrigin: 'top left',
                         animation: 'fadeIn 0.15s ease-out'
                     }}
                 >
@@ -487,8 +556,8 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                             <div>意味: {activeTooltip.meaning}</div>
                         </div>
                         <button 
-                            className={`w-full bg-white border border-gray-200 rounded p-2 text-sm cursor-pointer transition-all duration-200 h-9 relative ${
-                                isAddButtonActive ? 'shadow-inner' : 'shadow-[2px_2px_4px_#bebebe,_-4px_-4px_8px_#ffffff]'
+                            className={`hover:shadow-neumorphic-button-hover w-full bg-white border border-gray-200 rounded p-2 text-sm cursor-pointer transition-all duration-200 h-9 relative ${
+                                isAddButtonActive ? 'shadow-neumorphic-button-hover' : 'shadow-neumorphic'
                             }`}
                             onClick={() => handleAddToDictionary(activeTooltip.word, activeTooltip.meaning)}
                         >

@@ -34,6 +34,8 @@ function MemoCardContent(props: IProps) {
 
     const [displayCards, setDisplayCards] = React.useState(initialMemoCards);
 
+    console.log(displayCards, "displayCards=====")
+
     async function handleDelete(id: string) {
         setDisplayCards(prev => prev.filter(card => card.id !== id));
         
