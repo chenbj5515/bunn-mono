@@ -53,7 +53,7 @@ export function OriginalText({
     const pathname = usePathname();
     const localOriginalTextRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    
+
     // 使用传入的 ref 或本地创建的 ref
     const effectiveRef = originalTextRef || localOriginalTextRef;
 
@@ -69,6 +69,7 @@ export function OriginalText({
 
     // 处理Ruby元素点击，播放发音
     const handleRubyClick = (text: string) => {
+        console.log(text, "text=====")
         speakText(text, {
             voiceName: "ja-JP-NanamiNeural",
         });
@@ -280,6 +281,7 @@ export function OriginalText({
         if (data.tag === 'span' && data.children) {
             return (
                 <span>
+                    {renderOriginalTextLabel()}：
                     {data.children.map((child, index) => {
                         if (typeof child === 'string') {
                             return <React.Fragment key={index}>{child}</React.Fragment>;
@@ -295,24 +297,21 @@ export function OriginalText({
     };
 
     return (
-        <div ref={containerRef} className="relative">
+        <div ref={containerRef} className="relative w-[calc(100%-42px)]">
             <div
                 suppressContentEditableWarning
-                contentEditable
-                className={`relative flex items-center outline-none w-[calc(100%-42px)] ${selectedCharacter ? "items-center" : "items-baseline"}`}
+                // contentEditable
+                className={`relative flex items-center outline-none ${selectedCharacter ? "items-center" : "items-baseline"}`}
                 onBlur={handleOriginalTextBlur}
                 ref={effectiveRef}
             >
-                {renderOriginalTextLabel()}：
                 {isFocused ? (
                     <section
                         className={`z-[1000] rounded-lg absolute ${isFocused ? "backdrop-blur-[3px] backdrop-saturate-[180%]" : ""
                             }  w-[101%] h-[105%] -left-[4px] -top-[2px]`}
                     ></section>
                 ) : null}
-                <span className="original-text">
-                    {renderKanaPronunciation(rubyOriginalTextRecord)}
-                </span>
+                {renderKanaPronunciation(rubyOriginalTextRecord)}
             </div>
 
             {/* 单词Tooltip */}

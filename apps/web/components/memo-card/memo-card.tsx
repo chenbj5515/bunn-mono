@@ -62,6 +62,8 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null | undefined>(character);
 
     // 解析JSON格式的rubyTranslations
+    // const rubyOriginalTextRecord = {}
+
     const rubyOriginalTextRecord = kanaPronunciation ? JSON.parse(kanaPronunciation.replace(/^```json|```$/g, '')) : {};
     const rubyTranslationRecord = rubyTranslations ? JSON.parse(rubyTranslations) : {};
 
@@ -169,7 +171,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     onOpenCharacterDialog={handleOpenCharacterDialog}
                 />
 
-                <div>
+                <div className="mt-[20px] mb-[20px]">
                     <span className={`inline-block ${selectedCharacter ? "w-11" : "w-[37px]"}`}>{t('translation')}</span>：
                     <span
                         suppressContentEditableWarning
