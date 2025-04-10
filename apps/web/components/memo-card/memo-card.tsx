@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { getTimeAgo } from "@/utils";
 import { speakText } from "@utils/tts"
@@ -14,11 +14,18 @@ import { memoCard } from "@db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 import { useTranslations } from 'next-intl';
 import { RecordingControls } from "./recording-controls";
-import { useEnhanceRuby } from "./hooks/use-enhance-ruby";
 import { CharacterSelectionDialog } from "../character-selection";
 import { Character } from "../timeline";
 import { updateMemoCardCharacter } from "../timeline/server-functions/update-character";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/components/tooltip";
+import { insertWordCard } from "./server-functions/insert-word-card";
+
+type KanaPronunciationData = {
+    tag: string;
+    children?: (string | { tag: string; text: string; rt: string })[];
+    text?: string;
+    rt?: string;
+};
 
 export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     onDelete?: (id: string) => void;
@@ -51,25 +58,122 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
 
     // 添加本地角色状态
     const [selectedCharacter, setSelectedCharacter] = useState<Character|null|undefined>(character);
+    
+    // 当前显示的tooltip相关状态
+    const [activeTooltip, setActiveTooltip] = useState<{word: string; meaning: string; position: {top: number; left: number}} | null>(null);
+    
+    console.log(activeTooltip, "activeTooltip=====")
+    // 跟踪按钮按下状态
+    const [isAddButtonActive, setIsAddButtonActive] = useState(false);
 
-    const rubyTranslationRecord = JSON.parse(rubyTranslations || '{}');
+    // 解析JSON格式的rubyTranslations
+    const rubyOriginalTextRecord = kanaPronunciation ? JSON.parse(kanaPronunciation.replace(/^```json|```$/g, '')) : {};
 
-    const translationTextRef = React.useRef<HTMLDivElement>(null);
-    const originalTextRef = React.useRef<HTMLDivElement>(null);
-    const prevTranslationTextRef = React.useRef<string>("");
-    const kanaTextRef = React.useRef<HTMLDivElement>(null);
-    const prevKanaTextRef = React.useRef<string>("");
+    const rubyTranslationRecord = rubyTranslations ? JSON.parse(rubyTranslations) : {};
+
+    const translationTextRef = useRef<HTMLDivElement>(null);
+    const originalTextRef = useRef<HTMLDivElement>(null);
+    const prevTranslationTextRef = useRef<string>("");
     const pathname = usePathname();
 
     const setCardId = useSetAtom(cardIdAtom);
 
-    const cardRef = React.useRef<HTMLDivElement>(null);
+    const cardRef = useRef<HTMLDivElement>(null);
 
-    useEnhanceRuby({
-        originalTextRef,
-        rubyTranslationRecord,
-        id
-    });
+    // 处理Ruby元素点击，播放发音
+    const handleRubyClick = (text: string) => {
+        speakText(text, {
+            voiceName: "ja-JP-NanamiNeural",
+        });
+    };
+
+    // 添加单词到单词本
+    const handleAddToDictionary = async (word: string, meaning: string) => {
+        try {
+            if (!pathname.includes('/home') && !pathname.includes('/guide')) {
+                const result = await insertWordCard(word, meaning, id);
+                if (result instanceof Error) {
+                    throw result;
+                }
+                console.log('单词添加成功');
+            }
+        } catch (error) {
+            console.error('添加单词失败', error);
+        } finally {
+            // 无论成功失败都关闭tooltip
+            setActiveTooltip(null);
+        }
+    };
+
+    // 显示单词tooltip
+    const showTooltip = (word: string, meaning: string, event: React.MouseEvent) => {
+        const element = event.currentTarget as HTMLElement;
+        const rect = element.getBoundingClientRect();
+        
+        setActiveTooltip({
+            word,
+            meaning,
+            position: {
+                top: rect.bottom + window.scrollY,
+                left: rect.left + window.scrollX
+            }
+        });
+    };
+
+    // 监听键盘事件，按空格键快捷添加单词
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'Space' && activeTooltip) {
+                e.preventDefault(); // 防止页面滚动
+                setIsAddButtonActive(true);
+            }
+        };
+        
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.code === 'Space' && activeTooltip) {
+                e.preventDefault();
+                setIsAddButtonActive(false);
+                handleAddToDictionary(activeTooltip.word, activeTooltip.meaning);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, [activeTooltip]);
+
+    // 监听点击事件，点击其他区域关闭tooltip
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // 如果点击的不是tooltip或ruby元素，则关闭tooltip
+            if (activeTooltip) {
+                const tooltipElement = document.querySelector('[data-ruby-tooltip="true"]');
+                if (tooltipElement && !tooltipElement.contains(event.target as Node)) {
+                    const rubyElements = document.querySelectorAll('ruby');
+                    let clickedOnRuby = false;
+                    
+                    rubyElements.forEach(ruby => {
+                        if (ruby.contains(event.target as Node)) {
+                            clickedOnRuby = true;
+                        }
+                    });
+                    
+                    if (!clickedOnRuby) {
+                        setActiveTooltip(null);
+                    }
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [activeTooltip]);
 
     function handleBlurChange(type: string) {
         setIsFocused(type === "blur" ? false : true);
@@ -140,6 +244,47 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         }
         setShowCharacterDialog(false);
     }
+
+    // 递归渲染KanaPronunciation的JSX
+    const renderKanaPronunciation = (data: KanaPronunciationData | null) => {
+        if (!data) return null;
+        
+        // console.log(data, "data=====")
+        if (data.tag === 'ruby') {
+            const hasTranslation = rubyTranslationRecord[data.text || ''];
+            console.log(rubyTranslationRecord, hasTranslation, "hasTranslation=====")
+            return (
+                <ruby
+                    key={Math.random()}
+                    onClick={() => handleRubyClick(data.rt || data.text || '')}
+                    onMouseEnter={hasTranslation ? 
+                        (e) => showTooltip(data.text || '', rubyTranslationRecord[data.text || ''], e) : 
+                        undefined
+                    }
+                    className={`relative border-b border-dotted border-gray-500 z-[999] cursor-pointer ${hasTranslation ? 'has-translation' : ''}`}
+                >
+                    {data.text}
+                    <rt>{data.rt}</rt>
+                </ruby>
+            );
+        }
+        
+        if (data.tag === 'span' && data.children) {
+            return (
+                <span>
+                    {data.children.map((child, index) => {
+                        if (typeof child === 'string') {
+                            return <React.Fragment key={index}>{child}</React.Fragment>;
+                        } else {
+                            return renderKanaPronunciation(child);
+                        }
+                    })}
+                </span>
+            );
+        }
+        
+        return null;
+    };
 
     // 渲染原始文本标签或角色头像
     const renderOriginalTextLabel = () => {
@@ -278,7 +423,6 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                 <div>
                     <div
                         suppressContentEditableWarning
-                        // contentEditable
                         className={`relative flex items-center outline-none w-[calc(100%-42px)] ${selectedCharacter ? "items-center" : "items-baseline"}`}
                         onBlur={handleOriginalTextBlur}
                         ref={originalTextRef}
@@ -290,10 +434,9 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                                     }  w-[101%] h-[105%] -left-[4px] -top-[2px]`}
                             ></section>
                         ) : null}
-                        <span
-                            className="original-text"
-                            dangerouslySetInnerHTML={{ __html: kanaPronunciation || "" }}
-                        ></span>
+                        <span className="original-text">
+                            {renderKanaPronunciation(rubyOriginalTextRecord)}
+                        </span>
                     </div>
                 </div>
 
@@ -326,6 +469,37 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
                     }
                 </div>
             </div>
+
+            {/* 单词Tooltip */}
+            {activeTooltip && (
+                <div 
+                    className="z-[1000] absolute bg-white shadow-md p-3 border-gray-100 border-t-2 rounded-lg min-w-[200px]" 
+                    data-ruby-tooltip="true"
+                    style={{
+                        top: `${activeTooltip.position.top}px`,
+                        left: `${activeTooltip.position.left}px`,
+                        animation: 'fadeIn 0.15s ease-out'
+                    }}
+                >
+                    <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1">
+                            <div>語句: {activeTooltip.word}</div>
+                            <div>意味: {activeTooltip.meaning}</div>
+                        </div>
+                        <button 
+                            className={`w-full bg-white border border-gray-200 rounded p-2 text-sm cursor-pointer transition-all duration-200 h-9 relative ${
+                                isAddButtonActive ? 'shadow-inner' : 'shadow-[2px_2px_4px_#bebebe,_-4px_-4px_8px_#ffffff]'
+                            }`}
+                            onClick={() => handleAddToDictionary(activeTooltip.word, activeTooltip.meaning)}
+                        >
+                            <div className="relative flex justify-center items-center w-full h-full">
+                                <span className="top-1/4 left-[16%] absolute text-gray-600 text-xl -translate-y-1/2">⎵</span>
+                                <span className="top-1/2 right-[13%] absolute -translate-y-1/2">单語帳に追加</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* 角色选择弹窗 */}
             {showCharacterDialog && seriesId && (

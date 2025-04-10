@@ -86,16 +86,14 @@ export default function LayoutClient({
                 .replace(/^[（(][^）)]*[）)]/, '') // 去掉开头的（）及其内容
                 .replace(/\s+/g, '、') // 将空格替换为、
                 .trim(); // 去除首尾空格
-            try {                    
+            try {
                 let translationPrompt;
-                if (locale === 'zh') {
-                    translationPrompt = `${original_text}，给出这句话的中文翻译，注意一定要中文简体，不要返回翻译结果以外的任何内容。`;
-                } else if (locale === 'zh-TW') {
-                    translationPrompt = `${original_text}，给出这句话的繁体中文翻译，注意一定要繁体中文，并且要符合台湾人的说话习惯，不要返回翻译结果以外的任何内容。`;
-                } else if (locale === 'en') {
-                    translationPrompt = `${original_text}，给出这句话的英文翻译，注意一定要英文，并且要符合英文母语者的说话习惯，不要返回翻译结果以外的任何内容。`;
-                }
-                
+
+                const targetLocale = locale === 'zh' ? '中文简体' : locale === 'zh-TW' ? '繁体中文' : '英文';
+
+                translationPrompt = `${original_text}，给出这句话的${targetLocale}翻译，注意一定要${targetLocale}，不要返回翻译结果以外的任何内容。`;
+
+
                 const [translationResultResponse, kanaResultResponse] = await Promise.all([
                     fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/generate-text`, {
                         method: 'POST',
@@ -113,15 +111,44 @@ export default function LayoutClient({
                         },
                         body: JSON.stringify({
                             prompt: `
-                                请将这个日语文本「${original_text}」转换为Ruby注音格式，使用HTML表示，注意三点：
+                                请将这个日语文本「${original_text}」转换为Ruby注音格式，使用JSON表示，注意三点：
                                 1. 所有汉字都要转化，注意你这里经常漏掉汉字的转化，避免这一点。
                                 2. 如果一个词是外来词，那么ruby中不是假名的注音而应该是英文原文。
                                 3. 如果一个词是英文，那么不要对这个词进行任何处理，注意这里你经常把英文也加上了ruby，避免这一点。 
                                 示例如下，
                                 输入是「Ubie では「Ubie Vitals」というデザインシステムに則って UI 開発を行っています。」  
-                                输出目标下面这样的HTML结构：  
-                                <span>Ubie では「Ubie Vitals」という<ruby>デザイン<rt>design</rt></ruby><ruby>システム<rt>system</rt></ruby>に<ruby>則って<rt>のっとって</rt></ruby> UI <ruby>開発<rt>かいはつ</rt></ruby>を行っています。</span>
-                                注意，只需要返回HTML结构，连不要返回任何其他内容。
+                                输出目标下面这样的JSON结构：  
+                                {
+                                    "tag": "span",
+                                    "children": [
+                                        "Ubie では「Ubie Vitals」という",
+                                        {
+                                            "tag": "ruby",
+                                            "text": "デザイン",
+                                            "rt": "design"
+                                        },
+                                        {
+                                            "tag": "ruby",
+                                            "text": "システム",
+                                            "rt": "system"
+                                        },
+                                        "に",
+                                        {
+                                            "tag": "ruby",
+                                            "text": "則って",
+                                            "rt": "のっとって"
+                                        },
+                                        " UI ",
+                                        {
+                                            "tag": "ruby",
+                                            "text": "開発",
+                                            "rt": "かいはつ"
+                                        },
+                                        "を行っています。"
+                                    ]
+                                }
+
+                                注意，只需要返回JSON结构，连不要返回任何其他内容。
                             `,
                             model: "gpt-4o"
                         })

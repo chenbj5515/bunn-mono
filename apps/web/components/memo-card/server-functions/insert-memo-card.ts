@@ -19,22 +19,31 @@ interface RubyItem {
     reading: string;
 }
 
-function extractRubyItemsServer(rubyHTML: string): RubyItem[] {
-    // 服务端无法使用DOM API，使用正则表达式提取Ruby元素
-    const rubyRegex = /<ruby>(.*?)<rt>(.*?)<\/rt><\/ruby>/g;
-    const items: RubyItem[] = [];
-    
-    let match;
-    while ((match = rubyRegex.exec(rubyHTML)) !== null) {
-        const text = match[1] || '';
-        const reading = match[2] || '';
+function extractRubyItemsServer(pronunciationData: string): RubyItem[] {
+    // 尝试解析JSON字符串
+    try {
+        const data = JSON.parse(pronunciationData.replace(/^```json|```$/g, ''));
+        const items: RubyItem[] = [];
         
-        if (text.trim()) {
-            items.push({ text, reading });
+        // 如果有children属性并且是数组
+        if (data.children && Array.isArray(data.children)) {
+            // 遍历children数组
+            for (const child of data.children) {
+                // 检查是否是ruby标签
+                if (typeof child === 'object' && child !== null && child.tag === 'ruby' && child.text && child.rt) {
+                    items.push({
+                        text: child.text,
+                        reading: child.rt
+                    });
+                }
+            }
         }
+        
+        return items;
+    } catch (error) {
+        console.error('解析pronunciation JSON数据失败:', error);
+        return [];
     }
-    
-    return items;
 }
 
 // 获取Ruby元素的翻译
@@ -125,6 +134,7 @@ export async function insertMemoCard(
     if (pronunciation) {
         try {
             const rubyItems = extractRubyItemsServer(pronunciation);
+            console.log(rubyItems, "rubyItems=====")
             if (rubyItems.length > 0) {
                 const translations = await translateRubyItemsServer(originalText, rubyItems, cookieHeader);
                 if (Object.keys(translations).length > 0) {
