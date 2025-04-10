@@ -136,7 +136,6 @@ export async function insertMemoCard(
     if (pronunciation) {
         try {
             const rubyItems = extractRubyItemsServer(pronunciation);
-            console.log(rubyItems, "rubyItems=====")
             if (rubyItems.length > 0) {
                 const translations = await translateRubyItemsServer(originalText, rubyItems, cookieHeader, targetLocale);
                 if (Object.keys(translations).length > 0) {
