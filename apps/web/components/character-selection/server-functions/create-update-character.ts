@@ -57,7 +57,9 @@ export async function createCharacter(
   // 4. 创建角色记录
   const result = await db.insert(characters)
     .values({
-      seriesId,
+      relatedId: seriesId,
+      relatedType: 'series',
+      userId: session.user.id,
       name,
       avatarUrl,
       createTime: new Date().toISOString(),
@@ -114,7 +116,7 @@ export async function updateCharacter(
   // 查询角色信息，确认存在
   const characterRecord = await db.select({
     id: characters.id,
-    seriesId: characters.seriesId,
+    relatedId: characters.relatedId,
     avatarUrl: characters.avatarUrl,
   })
   .from(characters)
@@ -147,7 +149,7 @@ export async function updateCharacter(
     }
 
     // 上传文件
-    const filename = `character-avatars/${session.user.id}/${existingCharacter.seriesId}/${uuidv4()}-${avatarFile.name}`;
+    const filename = `character-avatars/${session.user.id}/${existingCharacter.relatedId}/${uuidv4()}-${avatarFile.name}`;
     const blob = await put(filename, avatarFile, {
       access: 'public',
       addRandomSuffix: false,
@@ -164,7 +166,7 @@ export async function updateCharacter(
       id: characters.id, 
       name: characters.name,
       avatarUrl: characters.avatarUrl,
-      seriesId: characters.seriesId
+      relatedId: characters.relatedId
     });
 
   if (!result.length) {
@@ -177,7 +179,7 @@ export async function updateCharacter(
   }
 
   // 刷新相关页面数据
-  revalidatePath(`/timeline/${character.seriesId}`);
+  revalidatePath(`/timeline/${character.relatedId}`);
 
   return {
     id: character.id,

@@ -50,6 +50,8 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
         height,
         rubyTranslations,
         seriesId,
+        channelId,
+        characterId,
     } = props;
 
     const t = useTranslations('memoCard');
@@ -58,6 +60,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     const [isHoveringLabel, setIsHoveringLabel] = React.useState(false);
     const [showCharacterDialog, setShowCharacterDialog] = React.useState(false);
 
+    console.log('characterId', characterId);
     // 添加本地角色状态
     const [selectedCharacter, setSelectedCharacter] = useState<Character | null | undefined>(character);
 
@@ -196,9 +199,9 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
             </div>
 
             {/* 角色选择弹窗 */}
-            {showCharacterDialog && seriesId && (
+            {showCharacterDialog && (seriesId || channelId) && (
                 <CharacterSelectionDialog
-                    seriesId={seriesId}
+                    relatedId={seriesId || channelId || ""}
                     onClose={handleCloseCharacterDialog}
                     onSelect={handleSelectCharacter}
                 />

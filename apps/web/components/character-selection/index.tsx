@@ -13,8 +13,8 @@ import { useTranslations } from 'next-intl';
 
 // 角色选择弹窗组件
 export function CharacterSelectionDialog(
-    { seriesId, onClose, onSelect }: {
-        seriesId: string,
+    { relatedId, onClose, onSelect }: {
+        relatedId: string,
         onClose: () => void,
         onSelect?: (character: Character) => void
     }
@@ -23,7 +23,7 @@ export function CharacterSelectionDialog(
     const [temporaryCharacters, setTemporaryCharacters] = useState<Character[]>([]);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const dialogRef = React.useRef<HTMLDivElement>(null);
-    const { characters, loading, error, refetch } = useRoleList(seriesId);
+    const { characters, loading, error, refetch } = useRoleList(relatedId);
     const t = useTranslations('characterSelection');
 
     // 合并服务端角色和临时角色
@@ -69,7 +69,12 @@ export function CharacterSelectionDialog(
             id: `temp-${uuidv4()}`, // 临时ID，以temp-开头
             name: '',
             avatarUrl: '',
-            seriesId
+            relatedId,
+            relatedType: 'series',
+            userId: '', // 临时默认值，后端会替换为实际用户ID
+            createTime: new Date().toISOString(),
+            updateTime: new Date().toISOString(),
+            description: null
         };
 
         setTemporaryCharacters(prev => [...prev, emptyCharacter]);
@@ -113,7 +118,7 @@ export function CharacterSelectionDialog(
             if (character.id.startsWith('temp-')) {
                 // 创建新角色
                 result = await createCharacter(
-                    character.seriesId,
+                    character.relatedId,
                     character.name,
                     character._file
                 );

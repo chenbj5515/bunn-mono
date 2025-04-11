@@ -549,7 +549,7 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
       )}
 
       {/* 可调整大小的头像 */}
-      <ResizableImage
+      {/* <ResizableImage
         src={avatarUrl || "/placeholder-avatar.png"}
         alt={channelDetail.channelName}
         initialPosition={avatarPosition}
@@ -560,16 +560,16 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
         type="title"
         id="avatar"
         onOpenUploadDialog={handleOpenUploadDialog}
-      />
+      /> */}
 
       {/* 可调整大小的标题 */}
-      <ResizableText
+      {/* <ResizableText
         text={channelDetail.channelName}
         initialPosition={titlePosition}
         initialSize={titleSize}
         cookieId={channelDetail.channelId}
         type="title_text"
-      />
+      /> */}
 
       {/* 内容区域 */}
       <div className="space-y-6 ml-auto px-4 md:pr-8 w-full md:w-1/2">

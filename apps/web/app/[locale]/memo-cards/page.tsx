@@ -43,18 +43,9 @@ export default async function MemoCardsPage() {
     platform: memoCard.platform,
     seriesId: memoCard.seriesId,
     characterId: memoCard.characterId,
-    character: {
-      id: characters.id,
-      name: characters.name,
-      description: characters.description,
-      avatarUrl: characters.avatarUrl,
-      seriesId: characters.seriesId,
-      createTime: characters.createTime,
-      updateTime: characters.updateTime
-    }
+    channelId: memoCard.channelId,
   })
   .from(memoCard)
-  .leftJoin(characters, eq(memoCard.characterId, characters.id))
   .where(
     and(
       eq(memoCard.userId, session.user.id),
@@ -83,18 +74,9 @@ export default async function MemoCardsPage() {
         platform: memoCard.platform,
         seriesId: memoCard.seriesId,
         characterId: memoCard.characterId,
-        character: {
-          id: characters.id,
-          name: characters.name,
-          description: characters.description,
-          avatarUrl: characters.avatarUrl,
-          seriesId: characters.seriesId,
-          createTime: characters.createTime,
-          updateTime: characters.updateTime
-        }
+        channelId: memoCard.channelId,
       })
       .from(memoCard)
-      .leftJoin(characters, eq(memoCard.characterId, characters.id))
       .where(
         and(
           eq(memoCard.userId, session.user.id),
