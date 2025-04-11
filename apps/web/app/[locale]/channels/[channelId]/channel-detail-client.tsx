@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { Card, CardContent } from "@ui/components/card";
 import { Button } from "@ui/components/button";
 import { motion } from 'framer-motion';
+import { uploadChannelBanner } from './server-actions';
 
 // 类型定义
 interface ChannelDetail {
@@ -50,6 +51,9 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
 }): ReactNode => {
   const pathname = usePathname();
   const t = useTranslations('ChannelDetail');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(channelDetail.bannerUrl);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   // 获取当前语言
   const locale = pathname.split('/')[1];
@@ -249,8 +253,62 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
     };
   }, [draggingTitle, titlePosition]);
 
+  // 处理横幅图片上传
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    if (!file || !file.type.startsWith('image/')) {
+      console.error('只支持上传图片文件');
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // 创建预览
+      const imageUrl = URL.createObjectURL(file);
+      setBannerUrl(imageUrl);
+      
+      // 上传横幅图片
+      const result = await uploadChannelBanner(channelDetail.channelId, file);
+      
+      // 更新最终URL
+      setBannerUrl(result.bannerUrl);
+      console.log('横幅图片上传成功');
+    } catch (error) {
+      console.error('上传横幅图片失败:', error);
+      // 恢复原来的URL
+      setBannerUrl(channelDetail.bannerUrl);
+    } finally {
+      setIsUploading(false);
+      
+      // 清空文件输入，以便再次选择同一文件
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 触发文件选择对话框
+  const triggerFileUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="relative mx-auto px-4 py-8 container">
+      {/* 隐藏的文件输入 */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleBannerUpload}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* 可拖拽的顶部横幅 */}
       <div
         className={`absolute ${draggingBanner ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -265,13 +323,32 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
         <motion.div
           className="relative bg-gray-200 rounded-lg w-[1070px] h-[172px] overflow-hidden"
         >
-          <Image
-            src={channelDetail.bannerUrl || "/placeholder-banner.png"}
-            alt="Channel Banner"
-            fill
-            className="object-cover"
-            draggable="false"
-          />
+          {bannerUrl ? (
+            <Image
+              src={bannerUrl}
+              alt="Channel Banner"
+              fill
+              className="object-cover"
+              draggable="false"
+            />
+          ) : (
+            <div 
+              className="flex justify-center items-center w-full h-full cursor-pointer"
+              onClick={triggerFileUpload}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <div className="bg-gray-300 p-3 rounded-full">
+                  <svg className="w-6 h-6 text-gray-600" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 6v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M6 12h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span className="text-gray-600">
+                  {isUploading ? '上传中...' : '点击上传横幅图片'}
+                </span>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
