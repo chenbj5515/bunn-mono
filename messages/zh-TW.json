@@ -544,5 +544,11 @@
     "Channels": {
         "yourChannels": "你的YouTube頻道",
         "noChannelsFound": "未找到頻道。添加YouTube筆記以在此處查看頻道。"
+    },
+    "ChannelDetail": {
+        "backToChannels": "返回頻道列表",
+        "about": "關於",
+        "videos": "視頻",
+        "noVideosFound": "未找到視頻"
     }
 }

@@ -64,6 +64,7 @@ export function MemoCard(props: InferSelectModel<typeof memoCard> & {
     // 解析JSON格式的rubyTranslations
     // const rubyOriginalTextRecord = {}
 
+    console.log(kanaPronunciation, "kanaPronunciation===")
     const rubyOriginalTextRecord = kanaPronunciation ? JSON.parse(kanaPronunciation.replace(/^```json|```$/g, '')) : {};
     const rubyTranslationRecord = rubyTranslations ? JSON.parse(rubyTranslations) : {};
 

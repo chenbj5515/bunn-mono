@@ -123,7 +123,7 @@ const App: React.FC = () => {
                             </div>
                         </div> */}
                         <div className="mt-14 text-[16px]">
-                            <DemoCard />
+                            {/* <DemoCard /> */}
                         </div>
                     </div>
                 </div>
@@ -311,7 +311,7 @@ const App: React.FC = () => {
                             {t('getStarted.websiteCopy')}
                         </p>
                         <div className="mt-12">
-                            <DemoCard type="contextText" />
+                            {/* <DemoCard type="contextText" /> */}
                         </div>
                     </div>
                 </div>

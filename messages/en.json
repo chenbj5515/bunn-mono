@@ -543,6 +543,12 @@
   },
   "Channels": {
     "yourChannels": "Your YouTube Channels",
-    "noChannelsFound": "No channels found. Add a YouTube memo to see channels here."
+    "noChannelsFound": "No channels found. Add YouTube notes to see channels here."
+  },
+  "ChannelDetail": {
+    "backToChannels": "Back to Channels",
+    "about": "About",
+    "videos": "Videos",
+    "noVideosFound": "No videos found"
   }
 }
