@@ -1,16 +1,10 @@
 import { FC } from 'react'
 import { db } from "@server/db/index"
-import { channels, channelVideoMetadata, memoCard } from "@server/db/schema"
-import { and, eq } from "drizzle-orm"
+import { channels, channelVideoMetadata, characters, memoCard } from "@server/db/schema"
+import { and, eq, InferSelectModel } from "drizzle-orm"
 import { getSession } from '@server/lib/auth'
 import { cookies } from 'next/headers'
 import ChannelDetailClient from './channel-detail-client'
-
-// 定义位置类型
-interface Position {
-  x: number;
-  y: number;
-}
 
 // 定义默认位置
 const DEFAULT_POSITIONS = {
@@ -19,11 +13,24 @@ const DEFAULT_POSITIONS = {
   title: { x: 150, y: 200 }
 };
 
+// 定义默认大小
+const DEFAULT_SIZES = {
+  banner: { width: 1070, height: 172 },
+  avatar: { width: 96, height: 96 },
+  title: { width: 300, height: 50 }
+};
+
 export interface ChannelDetailPageProps {
   params: {
     locale: string
     channelId: string
   }
+}
+
+export interface MemoCardWithChannel extends InferSelectModel<typeof memoCard> {
+  character: InferSelectModel<typeof characters> | null
+  videoId: string,
+  videoTitle: string,
 }
 
 const ChannelDetailPage: FC<ChannelDetailPageProps> = async ({ params }) => {
@@ -42,7 +49,7 @@ const ChannelDetailPage: FC<ChannelDetailPageProps> = async ({ params }) => {
 
   // 从数据库获取频道详细信息
   let channelDetail = null
-  let videoList: any[] = []
+  let memoCardList: MemoCardWithChannel[] = []
 
   try {
     // 获取频道信息
@@ -58,26 +65,45 @@ const ChannelDetailPage: FC<ChannelDetailPageProps> = async ({ params }) => {
       .where(eq(channels.channelId, channelId))
       .limit(1)
 
-    console.log(channelData, channelId, "channelId===")
-
     if (channelData.length > 0) {
       channelDetail = channelData[0]
 
-      // 获取与该频道相关的视频数据
-      const videosData = await db
+      // 获取与该频道相关的视频数据，同时包含memoCard的所有字段
+      const memoCardsData = await db
         .select({
+          // memoCard的所有字段
           id: memoCard.id,
+          translation: memoCard.translation,
+          createTime: memoCard.createTime,
+          updateTime: memoCard.updateTime,
+          recordFilePath: memoCard.recordFilePath,
           originalText: memoCard.originalText,
-          thumbnailUrl: channelVideoMetadata.thumbnailUrl,
+          reviewTimes: memoCard.reviewTimes,
+          forgetCount: memoCard.forgetCount,
+          userId: memoCard.userId,
+          kanaPronunciation: memoCard.kanaPronunciation,
+          contextUrl: memoCard.contextUrl,
+          rubyTranslations: memoCard.rubyTranslations,
           platform: memoCard.platform,
+          seriesId: memoCard.seriesId,
+          characterId: memoCard.characterId,
+          // channelVideoMetadata的字段
+          channelId: channelVideoMetadata.channelId,
+          metadataId: channelVideoMetadata.id, // 作为MemoCardWithMetadata需要的metadataId
+          thumbnailUrl: channelVideoMetadata.thumbnailUrl,
           videoId: channelVideoMetadata.videoId,
           videoTitle: channelVideoMetadata.videoTitle,
-          createTime: memoCard.createTime,
+          // characters表的字段
+          character: characters,
         })
         .from(memoCard)
         .innerJoin(
           channelVideoMetadata,
           eq(memoCard.id, channelVideoMetadata.memoCardId)
+        )
+        .leftJoin(
+          characters,
+          eq(memoCard.characterId, characters.id)
         )
         .where(
           and(
@@ -88,7 +114,7 @@ const ChannelDetailPage: FC<ChannelDetailPageProps> = async ({ params }) => {
         )
         .orderBy(memoCard.createTime)
 
-      videoList = videosData
+      memoCardList = memoCardsData
     }
   } catch (error) {
     console.error("Failed to fetch channel details:", error)
@@ -108,34 +134,67 @@ const ChannelDetailPage: FC<ChannelDetailPageProps> = async ({ params }) => {
   let bannerPosition = DEFAULT_POSITIONS.banner;
   let avatarPosition = DEFAULT_POSITIONS.avatar;
   let titlePosition = DEFAULT_POSITIONS.title;
+  let bannerSize = DEFAULT_SIZES.banner;
+  let avatarSize = DEFAULT_SIZES.avatar;
+  let titleSize = DEFAULT_SIZES.title;
 
   // 尝试获取横幅位置
-  const bannerCookie = cookieStore.get('banner_position');
-  if (bannerCookie && bannerCookie.value) {
+  const bannerPositionCookie = cookieStore.get(`cover_position_${encodedChannelId}`);
+  if (bannerPositionCookie && bannerPositionCookie.value) {
     try {
-      bannerPosition = JSON.parse(bannerCookie.value);
+      bannerPosition = JSON.parse(bannerPositionCookie.value);
     } catch (error) {
       console.error("Failed to parse banner position:", error);
     }
   }
 
   // 尝试获取头像位置
-  const avatarCookie = cookieStore.get('avatar_position');
-  if (avatarCookie && avatarCookie.value) {
+  const avatarPositionCookie = cookieStore.get(`title_position_${channelId}`);
+  if (avatarPositionCookie && avatarPositionCookie.value) {
     try {
-      avatarPosition = JSON.parse(avatarCookie.value);
+      avatarPosition = JSON.parse(avatarPositionCookie.value);
     } catch (error) {
       console.error("Failed to parse avatar position:", error);
     }
   }
 
   // 尝试获取标题位置
-  const titleCookie = cookieStore.get('title_position');
-  if (titleCookie && titleCookie.value) {
+  const titlePositionCookie = cookieStore.get(`title_text_position_${encodedChannelId}`);
+  if (titlePositionCookie && titlePositionCookie.value) {
     try {
-      titlePosition = JSON.parse(titleCookie.value);
+      titlePosition = JSON.parse(titlePositionCookie.value);
     } catch (error) {
       console.error("Failed to parse title position:", error);
+    }
+  }
+
+  // 尝试获取横幅大小
+  const bannerSizeCookie = cookieStore.get(`cover_size_${encodedChannelId}`);
+  if (bannerSizeCookie && bannerSizeCookie.value) {
+    try {
+      bannerSize = JSON.parse(bannerSizeCookie.value);
+    } catch (error) {
+      console.error("Failed to parse banner size:", error);
+    }
+  }
+
+  // 尝试获取头像大小
+  const avatarSizeCookie = cookieStore.get(`title_size_${encodedChannelId}`);
+  if (avatarSizeCookie && avatarSizeCookie.value) {
+    try {
+      avatarSize = JSON.parse(avatarSizeCookie.value);
+    } catch (error) {
+      console.error("Failed to parse avatar size:", error);
+    }
+  }
+
+  // 尝试获取标题大小
+  const titleSizeCookie = cookieStore.get(`title_text_size_${encodedChannelId}`);
+  if (titleSizeCookie && titleSizeCookie.value) {
+    try {
+      titleSize = JSON.parse(titleSizeCookie.value);
+    } catch (error) {
+      console.error("Failed to parse title size:", error);
     }
   }
 
@@ -143,10 +202,13 @@ const ChannelDetailPage: FC<ChannelDetailPageProps> = async ({ params }) => {
   return (
     <ChannelDetailClient 
       channelDetail={channelDetail} 
-      videoList={videoList} 
+      memoCardList={memoCardList} 
       bannerPosition={bannerPosition}
       avatarPosition={avatarPosition}
       titlePosition={titlePosition}
+      bannerSize={bannerSize}
+      avatarSize={avatarSize}
+      titleSize={titleSize}
     />
   )
 }

@@ -35,6 +35,7 @@ export const ResizableImage = ({
     onOpenUploadDialog, // 打开上传对话框的回调函数
     type // 图片类型
 }: ResizableImageProps) => {
+    console.log('cookieId=======', cookieId);
     const [position, setPosition] = useState(initialPosition);
     const [size, setSize] = useState(initialSize);
     const [isDragging, setIsDragging] = useState(false);
@@ -192,14 +193,13 @@ export const ResizableImage = ({
     return (
         <div
             ref={imageRef}
-            className={`fixed ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className}`}
+            className={`z-[1000] fixed ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} ${className}`}
             style={{
                 left: `${position.x}px`,
                 top: `${position.y}px`,
                 width: `${size.width}px`,
                 height: `${aspectRatio ? size.width / aspectRatio : size.height}px`,
                 background: 'transparent',
-                zIndex: 50,
                 userSelect: 'none',
                 border: isInteracting ? '2px solid rgb(59, 130, 246)' : 'none',
                 borderRadius: `${borderRadius}px`,

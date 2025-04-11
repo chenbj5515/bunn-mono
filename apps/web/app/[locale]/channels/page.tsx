@@ -1,4 +1,3 @@
-import { FC } from 'react'
 import ChannelsClient, { Channel } from './channels-client'
 import { db } from "@db/index"
 import { memoCard, channels, channelVideoMetadata } from "@db/schema"

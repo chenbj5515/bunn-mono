@@ -5,7 +5,7 @@ export const actionTypeEnum = pgEnum("action_type_enum", ['COMPLETE_SENTENCE_REV
 export const examStatusEnum = pgEnum("exam_status_enum", ['initial', 'in_progress', 'completed'])
 export const membershipPlanEnum = pgEnum("membership_plan_enum", ['MONTHLY'])
 export const questionTypeEnum = pgEnum("question_type_enum", ['kana_from_japanese', 'translation_from_japanese', 'japanese_from_chinese', 'transcription_from_audio'])
-export const relatedTypeEnum = pgEnum("related_type_enum", ['word_card', 'memo_card', 'exam'])
+export const relatedTypeEnum = pgEnum("related_type_enum", ['word_card', 'memo_card', 'exam', 'series', 'channel'])
 
 
 export const verification = pgTable("verification", {
@@ -124,6 +124,7 @@ export const memoCard = pgTable("memo_card", {
 	platform: text('platform'),      // 内容类型：'youtube', 'nextflix series'等
 	seriesId: uuid('series_id').references(() => series.id, { onDelete: 'set null' }),          // 关联到具体内容的ID
 	characterId: uuid('character_id').references(() => characters.id, { onDelete: 'set null' }), // 关联到角色ID
+	channelId: text('channel_id').references(() => channels.channelId, { onDelete: 'set null' }), // 关联到YouTube频道ID
 });
 
 export const userSubscription = pgTable("user_subscription", {
@@ -218,9 +219,9 @@ export const characters = pgTable('characters', {
 	name: text('name').notNull(),           // 角色名称
 	description: text('description'),       // 角色描述
 	avatarUrl: text('avatar_url'),          // 角色头像URL
-	seriesId: uuid('series_id')
-		.notNull()
-		.references(() => series.id, { onDelete: 'cascade' }), // 关联到剧集
+	relatedId: uuid('related_id').notNull(),  // 关联ID（可能是剧集ID或频道ID）
+	relatedType: relatedTypeEnum('related_type').notNull(), // 关联类型：'series' 或 'channel'
+	userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }), // 用户ID，确保用户只能选择自己上传的角色
 	createTime: timestamp("create_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updateTime: timestamp("update_time", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 });

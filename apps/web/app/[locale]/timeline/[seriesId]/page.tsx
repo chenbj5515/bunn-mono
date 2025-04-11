@@ -182,7 +182,9 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
         avatarUrl: card.characterAvatarUrl,
         createTime: new Date().toISOString(),
         updateTime: new Date().toISOString(),
-        seriesId: seriesId
+        userId: session.user.id,
+        relatedId: seriesId,
+        relatedType: 'series'
       } : null,
     }));
 
@@ -195,7 +197,13 @@ const TimelinePage: FC<TimelinePageProps> = async ({ params }) => {
         avatarUrl: characters.avatarUrl,
       })
       .from(characters)
-      .where(eq(characters.seriesId, seriesId));
+      .where(
+        and(
+          eq(characters.relatedId, seriesId),
+          eq(characters.relatedType, 'series'),
+          eq(characters.userId, session.user.id)
+        )
+      );
     
     charactersList = charactersData;
   } catch (error) {
