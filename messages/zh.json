@@ -549,6 +549,13 @@
         "backToChannels": "返回频道列表",
         "about": "关于",
         "videos": "视频",
-        "noVideosFound": "未找到视频"
+        "noVideosFound": "未找到视频",
+        "selectVideo": "选择视频",
+        "noCards": "没有卡片"
+    },
+    "VideoSelector": {
+        "searchPlaceholder": "搜索视频...",
+        "noResults": "没有找到匹配的视频",
+        "cancel": "取消"
     }
 }

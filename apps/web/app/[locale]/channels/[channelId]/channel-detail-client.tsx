@@ -13,7 +13,8 @@ import { MemoCard } from "@/components/memo-card";
 import { MemoCardWithMetadata } from '@/components/timeline';
 import { MemoCardWithChannel } from './page';
 import { UploadDialog } from '@/components/upload-dialog';
-import { Trash } from 'lucide-react';
+import { VideoSelector, VideoInfo } from '@/components/video-selector';
+import { Trash, ChevronDown } from 'lucide-react';
 import { deleteMemoCard } from '@/components/memo-card/server-functions';
 import { ResizableImage } from '@/components/timeline/resizable-image';
 import Cookies from 'js-cookie';
@@ -85,7 +86,7 @@ const ResizableText: FC<ResizableTextProps> = ({
     // 检查是否点击了调整大小的手柄
     const target = e.target as HTMLElement;
     if (target.className?.includes?.('resize-handle')) return;
-    
+
     e.preventDefault(); // 防止默认的拖拽行为
     e.stopPropagation(); // 阻止事件冒泡
     setIsDragging(true);
@@ -171,7 +172,7 @@ const ResizableText: FC<ResizableTextProps> = ({
       setIsResizing(false);
       setIsInteracting(false);
       setResizeDirection(null);
-      
+
       // 保存到cookie
       if (cookieId) {
         Cookies.set(positionCookieKey, JSON.stringify(position), { expires: 365 });
@@ -185,13 +186,13 @@ const ResizableText: FC<ResizableTextProps> = ({
     if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      
+
       // 添加移动和调整时禁用选择的样式
       document.body.style.userSelect = 'none';
     } else {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      
+
       // 恢复文本选择
       document.body.style.userSelect = '';
     }
@@ -199,7 +200,7 @@ const ResizableText: FC<ResizableTextProps> = ({
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      
+
       // 确保清理
       document.body.style.userSelect = '';
     };
@@ -232,7 +233,7 @@ const ResizableText: FC<ResizableTextProps> = ({
           {text}
         </h1>
       </div>
-      
+
       {/* 右下角调整手柄 */}
       <div
         className={`right-0 bottom-0 absolute resize-handle cursor-se-resize`}
@@ -299,11 +300,19 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
   const t = useTranslations('ChannelDetail');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
+  const videoTitleRef = useRef<HTMLDivElement>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(channelDetail.bannerUrl);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(channelDetail.avatarUrl);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isAvatarUploading, setIsAvatarUploading] = useState<boolean>(false);
-  const [displayCards, setDisplayCards] = useState(memoCardList);
+
+  // 视频选择状态
+  const [isVideoSelectorOpen, setIsVideoSelectorOpen] = useState<boolean>(false);
+  const [videos, setVideos] = useState<VideoInfo[]>([]);
+  const [currentVideoId, setCurrentVideoId] = useState<string>('');
+  const [currentVideoTitle, setCurrentVideoTitle] = useState<string>('');
+  const [filteredCards, setFilteredCards] = useState<MemoCardWithChannel[]>([]);
+  const [selectorPosition, setSelectorPosition] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 300 });
 
   // 获取当前语言
   const locale = pathname.split('/')[1];
@@ -314,14 +323,66 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
   // 使用从服务端获取的位置和大小
   const [bannerPosition, setBannerPosition] = useState<Position>(initialBannerPosition);
   const [bannerSize, setBannerSize] = useState<Size>(initialBannerSize);
-  
+
   // 头像位置和大小状态
   const [avatarPosition, setAvatarPosition] = useState<Position>(initialAvatarPosition);
   const [avatarSize, setAvatarSize] = useState<Size>(initialAvatarSize);
-  
+
   // 标题位置和大小状态
   const [titlePosition, setTitlePosition] = useState<Position>(initialTitlePosition);
   const [titleSize, setTitleSize] = useState<Size>(initialTitleSize);
+
+  // 根据 memoCardList 整理出不重复的视频列表
+  useEffect(() => {
+    if (memoCardList && memoCardList.length > 0) {
+      const uniqueVideos = Array.from(
+        new Map(
+          memoCardList.map(card => [
+            card.videoId,
+            { videoId: card.videoId, videoTitle: card.videoTitle }
+          ])
+        ).values()
+      );
+      setVideos(uniqueVideos);
+
+      // 默认选择最新的视频（假设列表是按照创建时间排序的）
+      const latestCard = memoCardList[memoCardList.length - 1];
+      if (latestCard) {
+        setCurrentVideoId(latestCard.videoId);
+        setCurrentVideoTitle(latestCard.videoTitle);
+
+        // 筛选出最新视频的卡片
+        filterCardsByVideo(latestCard.videoId);
+      }
+    }
+  }, [memoCardList]);
+
+  // 根据选中的视频 ID 筛选卡片
+  const filterCardsByVideo = (videoId: string) => {
+    const filtered = memoCardList.filter(card => card.videoId === videoId);
+    setFilteredCards(filtered);
+  };
+
+  // 处理视频选择
+  const handleVideoSelect = (videoId: string, videoTitle: string) => {
+    setCurrentVideoId(videoId);
+    setCurrentVideoTitle(videoTitle);
+    filterCardsByVideo(videoId);
+  };
+
+  // 处理打开视频选择器
+  const handleOpenVideoSelector = () => {
+    if (videoTitleRef.current) {
+      const rect = videoTitleRef.current.getBoundingClientRect();
+      const titleCenter = rect.left + (rect.width / 2);
+      setSelectorPosition({
+        top: rect.bottom + window.scrollY + 5, // 添加5px的间隔
+        left: titleCenter,
+        width: Math.max(rect.width, 280) // 确保弹窗宽度至少280px
+      });
+    }
+    setIsVideoSelectorOpen(true);
+  };
 
   // 处理横幅图片上传
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -417,18 +478,17 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
   };
 
   async function handleDelete(id: string) {
-    setDisplayCards(prev => prev.filter(card => card.id !== id));
+    setFilteredCards(prev => prev.filter(card => card.id !== id));
 
     try {
       await deleteMemoCard(id);
     } catch (error) {
       console.error('删除失败:', error);
-      // setDisplayCards(initialMemoCards);
     }
   }
 
   return (
-    <div className="relative py-8 w-full">
+    <div className="relative w-full">
       {/* 隐藏的文件输入 - 横幅 */}
       <input
         type="file"
@@ -512,30 +572,60 @@ const ChannelDetailClient: FC<ChannelDetailClientProps> = ({
       />
 
       {/* 内容区域 */}
-      {/* 右侧卡片内容区域 - 定位在右半部分居中 */}
-      <div className="space-y-24 ml-auto px-4 py-10 md:pr-8 w-full md:w-1/2">
-        {displayCards.map((card, index) => {
-          return (
-            <div key={index} className="group relative">
-              {/* 剧集信息 */}
-              {/* <div className="mb-10 text-[18px] text-center">
-                {card.videoTitle}
-              </div> */}
-              <button
-                className="top-0 right-[2%] z-10 absolute opacity-0 group-hover:opacity-100 p-1 rounded-full transition-opacity duration-200"
-                onClick={() => handleDelete(card.id)}
-              >
-                <Trash className="w-5 h-5" />
-              </button>
-              <MemoCard
-                {...card}
-                weakBorder={true}
-                hideCreateTime={false}
-                character={card.character || undefined}
+      <div className="space-y-6 ml-auto px-4 md:pr-8 w-full md:w-1/2">
+        {/* 视频选择器标题 */}
+        <div
+          ref={videoTitleRef}
+          className="relative mb-16 text-center"
+        >
+          <div
+            className="inline-flex items-center gap-2 hover:text-blue-600 transition-colors cursor-pointer"
+            onClick={handleOpenVideoSelector}
+          >
+            <h2 className="font-semibold text-xl">
+              {currentVideoTitle || t('selectVideo', { fallback: '选择视频' })}
+              {/* 视频选择器弹窗 */}
+              <VideoSelector
+                isOpen={isVideoSelectorOpen}
+                onClose={() => setIsVideoSelectorOpen(false)}
+                onSelect={handleVideoSelect}
+                title={t('selectVideo', { fallback: '选择视频' })}
+                videos={videos}
+                currentVideoId={currentVideoId}
               />
+            </h2>
+            <ChevronDown className="w-4 h-4" />
+
+          </div>
+        </div>
+
+        {/* 卡片列表 */}
+        <div className="space-y-24">
+          {filteredCards.map((card, index) => {
+            return (
+              <div key={card.id} className="group relative">
+                <button
+                  className="top-0 right-[2%] z-10 absolute opacity-0 group-hover:opacity-100 p-1 rounded-full transition-opacity duration-200"
+                  onClick={() => handleDelete(card.id)}
+                >
+                  <Trash className="w-5 h-5" />
+                </button>
+                <MemoCard
+                  {...card}
+                  weakBorder={true}
+                  hideCreateTime={false}
+                  character={card.character || undefined}
+                />
+              </div>
+            )
+          })}
+
+          {/* {filteredCards.length === 0 && (
+            <div className="py-10 text-gray-500 text-center">
+              {t('noCards', { fallback: '没有卡片' })}
             </div>
-          )
-        })}
+          )} */}
+        </div>
       </div>
     </div>
   );

@@ -549,6 +549,13 @@
     "backToChannels": "Back to Channels",
     "about": "About",
     "videos": "Videos",
-    "noVideosFound": "No videos found"
+    "noVideosFound": "No videos found",
+    "selectVideo": "Select Video",
+    "noCards": "No cards"
+  },
+  "VideoSelector": {
+    "searchPlaceholder": "Search videos...",
+    "noResults": "No matching videos found",
+    "cancel": "Cancel"
   }
 }
